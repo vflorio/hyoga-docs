@@ -1,0 +1,18 @@
+---
+sidebar_position: 2
+---
+
+# Aurora prod
+
+import HyogaExperience from '@site/src/components/HyogaExperience';
+
+Environment Aurora produzione con variant selector separato.
+
+<HyogaExperience
+  title="Environment: Aurora prod"
+  subtitle="Production endpoint; puoi combinare questo environment con FW, tracker, G-TAG e altre varianti."
+  initialEnvironmentKey="auroraProd"
+  environmentKeys={['auroraProd', 'auroraStage', 'sonic']}
+  initialVariantKey="autoplayVideo"
+  variantKeys={['autoplayVideo', 'withAds', 'withAdsDeferred', 'withTracker', 'withGtag']}
+/>

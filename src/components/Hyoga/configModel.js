@@ -14,7 +14,7 @@ export const CONFIG_FIELDS_BY_DOMAIN = {
   source: ['assetid', 'playbacktype', 'sourceparams'],
   behavior: ['autoplay', 'muted', 'hideoverlay', 'disableobserver'],
   monetization: ['adsystem', 'deferredadinit'],
-  tracking: ['globaleventsmanager', 'waitforgtag', 'gtagreadyvar'],
+  tracking: ['globaleventsmanager'],
 };
 
 export const DOMAIN_LABELS = {
@@ -29,11 +29,11 @@ export const DOMAIN_LABELS = {
 export const BASE_CONFIG_BY_DOMAIN = {
   // ----- Identity block -----
   identity: {
-    id: 'hyogaManagerff55a6baec1675e0d593e783e25dcd7f',
-    uid: 'ff55a6baec1675e0d593e783e25dcd7f',
-    playerselector: 'hyogaPlayer-ff55a6baec1675e0d593e783e25dcd7f',
+    id: 'hyogaManager-player-uuid-0',
+    uid: 'player-uuid-0',
+    playerselector: 'hyogaPlayer-player-uuid-0',
     playertype: 'videoPlayer',
-    hyogamanager: 'hyogaManagerff55a6baec1675e0d593e783e25dcd7f',
+    hyogamanager: 'hyogaManager-player-uuid-0',
   },
 
   // ----- Runtime block -----
@@ -69,51 +69,55 @@ export const BASE_CONFIG_BY_DOMAIN = {
   // ----- Tracking block -----
   tracking: {
     globaleventsmanager: '',
-    waitforgtag: 'false',
-    gtagreadyvar: '',
   },
 };
 
-export const VARIANT_DEFINITIONS = {
-  autoplayVideo: {
-    label: 'Autoplay Video (default home)',
-    description: 'Preconfigured autoplay video on Aurora production.',
-    domains: {},
-  },
+export const DEFAULT_ENVIRONMENT_KEY = 'auroraProd';
+
+export const ENVIRONMENT_DEFINITIONS = {
   auroraProd: {
     label: 'Aurora prod',
-    description: 'Production endpoint with video playback.',
+    description: 'Production endpoint with video playback defaults.',
     domains: {
       runtime: {
+        sourcetype: 'sonic',
         endpoint: 'https://public.aurora.enhanced.live',
+        realm: 'it',
       },
       source: {
         assetid: '18322',
         playbacktype: 'video',
+        sourceparams: '',
+      },
+      behavior: {
+        autoplay: 'true',
+        disableobserver: 'false',
       },
     },
   },
   auroraStage: {
     label: 'Aurora stage',
-    description: 'Stage endpoint with channel playback and source params.',
+    description: 'Stage endpoint with channel sample defaults.',
     domains: {
       runtime: {
+        sourcetype: 'sonic',
         endpoint: 'https://stage-public.aurora.enhanced.live',
+        realm: 'it',
       },
       source: {
-        assetid: '6',
         playbacktype: 'channel',
+        assetid: '6',
         sourceparams: 'aws.manifestsettings=start:1740997225',
       },
       behavior: {
         autoplay: 'false',
+        disableobserver: 'true',
       },
     },
   },
   sonic: {
     label: 'Sonic',
-    description:
-      'Sonic placeholder variant. Keep implementation details empty for now.',
+    description: 'Sonic placeholder environment. Implementation details intentionally empty.',
     domains: {
       runtime: {
         sourcetype: 'sonic',
@@ -124,6 +128,18 @@ export const VARIANT_DEFINITIONS = {
         assetid: '',
         playbacktype: 'video',
         sourceparams: '',
+      },
+    },
+  },
+};
+
+export const VARIANT_DEFINITIONS = {
+  autoplayVideo: {
+    label: 'Autoplay video baseline',
+    description: 'Base variant with autoplay enabled.',
+    domains: {
+      behavior: {
+        autoplay: 'true',
       },
     },
   },
@@ -151,7 +167,7 @@ export const VARIANT_DEFINITIONS = {
     description: 'Attach a global events manager for trackers integration.',
     domains: {
       tracking: {
-        globaleventsmanager: 'ff55a6baec1675e0d593e783e25dcd7f@lomaEventsManager',
+        globaleventsmanager: 'player-uuid-0@lomaEventsManager',
       },
     },
   },
@@ -162,10 +178,6 @@ export const VARIANT_DEFINITIONS = {
     domains: {
       behavior: {
         autoplay: 'false',
-      },
-      tracking: {
-        waitforgtag: 'true',
-        gtagreadyvar: '__HYOGA_GTAG_READY__',
       },
     },
   },
@@ -233,10 +245,64 @@ export function buildFlatConfigFromDomains(domains) {
   return flatConfig;
 }
 
-export function createVariantConfig(variantKey) {
-  const variant = VARIANT_DEFINITIONS[variantKey] || VARIANT_DEFINITIONS.autoplayVideo;
-  const domains = mergeDomains(BASE_CONFIG_BY_DOMAIN, variant.domains);
+function buildPartialFlatConfigFromDomains(domains) {
+  const partialConfig = {};
+
+  Object.keys(domains || {}).forEach((domain) => {
+    const domainFields = CONFIG_FIELDS_BY_DOMAIN[domain] || [];
+    domainFields.forEach((field) => {
+      if (Object.prototype.hasOwnProperty.call(domains[domain], field)) {
+        partialConfig[field] = domains[domain][field];
+      }
+    });
+  });
+
+  return partialConfig;
+}
+
+export function createEnvironmentConfig(environmentKey = DEFAULT_ENVIRONMENT_KEY) {
+  const environment =
+    ENVIRONMENT_DEFINITIONS[environmentKey] || ENVIRONMENT_DEFINITIONS[DEFAULT_ENVIRONMENT_KEY];
+  const domains = mergeDomains(BASE_CONFIG_BY_DOMAIN, environment.domains);
   return buildFlatConfigFromDomains(domains);
+}
+
+export function createVariantConfig(variantKey) {
+  const baseConfig = createEnvironmentConfig(DEFAULT_ENVIRONMENT_KEY);
+  return applyVariant(baseConfig, variantKey);
+}
+
+export function applyEnvironment(config, environmentKey) {
+  const environment =
+    ENVIRONMENT_DEFINITIONS[environmentKey] || ENVIRONMENT_DEFINITIONS[DEFAULT_ENVIRONMENT_KEY];
+  const environmentPatch = buildPartialFlatConfigFromDomains(environment.domains);
+
+  return {
+    ...config,
+    ...environmentPatch,
+  };
+}
+
+export function applyVariant(config, variantKey) {
+  const variant = VARIANT_DEFINITIONS[variantKey] || VARIANT_DEFINITIONS.autoplayVideo;
+  const variantPatch = buildPartialFlatConfigFromDomains(variant.domains);
+
+  return {
+    ...config,
+    ...variantPatch,
+  };
+}
+
+export function detectEnvironment(config) {
+  if (!config?.endpoint && config?.sourcetype === 'sonic') {
+    return 'sonic';
+  }
+
+  if (String(config?.endpoint || '').includes('stage-public.aurora.enhanced.live')) {
+    return 'auroraStage';
+  }
+
+  return DEFAULT_ENVIRONMENT_KEY;
 }
 
 export function detectContentMode(config) {
@@ -245,12 +311,21 @@ export function detectContentMode(config) {
 
 export function applyContentMode(config, contentModeKey) {
   const mode = CONTENT_MODE_DEFINITIONS[contentModeKey] || CONTENT_MODE_DEFINITIONS.video;
-  const modeFlatConfig = buildFlatConfigFromDomains(mode.domains);
+  const modeFlatConfig = buildPartialFlatConfigFromDomains(mode.domains);
 
   return {
     ...config,
     ...modeFlatConfig,
   };
+}
+
+export function getAvailableEnvironments(environmentKeys) {
+  return environmentKeys
+    .map((key) => ({
+      key,
+      ...ENVIRONMENT_DEFINITIONS[key],
+    }))
+    .filter((environment) => Boolean(environment.label));
 }
 
 export function getAvailableVariants(variantKeys) {

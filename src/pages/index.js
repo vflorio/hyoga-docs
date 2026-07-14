@@ -21,7 +21,7 @@ function HomepageHeader() {
           <Link
             className="button button--secondary button--lg"
             to="/docs/introduction">
-            Open Hyoga Docs
+            Open  Docs
           </Link>
         </div>
       </div>
@@ -40,19 +40,10 @@ export default function Home() {
         <section className={styles.playerSection}>
           <div className="container">
             <HyogaExperience
-              title="Hyoga Live Playground"
-              subtitle="Home preview: autoplay video is loaded immediately. Use variants to switch Aurora environments, ads, deferred ad init, and tracker setup."
               initialVariantKey="autoplayVideo"
-              variantKeys={[
-                'autoplayVideo',
-                'auroraProd',
-                'auroraStage',
-                'sonic',
-                'withAds',
-                'withAdsDeferred',
-                'withTracker',
-                'withGtag',
-              ]}
+              initialEnvironmentKey="auroraProd"
+              variantKeys={[]}
+              environmentKeys={[]}
             />
           </div>
         </section>

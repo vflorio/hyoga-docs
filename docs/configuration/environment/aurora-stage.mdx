@@ -1,0 +1,18 @@
+---
+sidebar_position: 3
+---
+
+# Aurora stage
+
+import HyogaExperience from '@site/src/components/HyogaExperience';
+
+Environment Aurora stage con variant selector separato.
+
+<HyogaExperience
+  title="Environment: Aurora stage"
+  subtitle="Stage endpoint; puoi combinare questo environment con FW, tracker, G-TAG e altre varianti."
+  initialEnvironmentKey="auroraStage"
+  environmentKeys={['auroraProd', 'auroraStage', 'sonic']}
+  initialVariantKey="autoplayVideo"
+  variantKeys={['autoplayVideo', 'withAds', 'withAdsDeferred', 'withTracker', 'withGtag']}
+/>

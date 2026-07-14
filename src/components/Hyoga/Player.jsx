@@ -1,4 +1,4 @@
-import React, {useEffect, useMemo, useState} from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 
 function loadScript(src) {
   return new Promise((resolve, reject) => {
@@ -70,16 +70,14 @@ export default function HyogaRuntimePlayer({
   }, [hyogaScript, bowserScript]);
 
   return (
-    <div>
+    <>
       {error ? (
-        <p style={{color: '#b42318'}}>{error}</p>
+        <p style={{ color: '#b42318' }}>{error}</p>
       ) : (
-        <p>{ready ? 'Scripts loaded. Player mounted below.' : 'Loading scripts...'}</p>
+        <p>{ready ? '' : 'Loading scripts...'}</p>
       )}
-
       <div
         style={{
-          marginTop: 12,
           width: '100%',
           maxWidth,
           aspectRatio: '16/9',
@@ -111,13 +109,11 @@ export default function HyogaRuntimePlayer({
             muted={config.muted}
             deferredadinit={valueOrUndefined(config.deferredadinit)}
             hideoverlay={valueOrUndefined(config.hideoverlay)}
-            waitforgtag={valueOrUndefined(config.waitforgtag)}
-            gtagreadyvar={valueOrUndefined(config.gtagreadyvar)}
-            style={{display: 'block', width: '100%', height: '100%'}}>
+            style={{ display: 'block', width: '100%', height: '100%' }}>
             <hyoga-videoplayer hyogamanager={config.hyogamanager || config.id} />
           </hyoga-player>
         ) : null}
       </div>
-    </div>
+    </>
   );
 }
