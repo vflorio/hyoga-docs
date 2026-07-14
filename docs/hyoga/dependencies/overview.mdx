@@ -1,0 +1,22 @@
+---
+sidebar_position: 11
+---
+
+# Dependencies Overview
+
+This section explains external dependencies before implementation details.
+
+## Why This Comes First
+
+Hyoga runtime behavior depends on external SDKs and global configuration objects.
+Without this context, code flow is hard to understand.
+
+## Dependency Groups
+
+- Content API and metadata client (StoneJS)
+- Core playback libraries (videojs, dashjs, hlsjs)
+- Advertising SDK and adapters (Freewheel integration)
+- Tracking and analytics integrations
+- Optional consent and CMP APIs
+
+Next pages document each group and expected bootstrapping order.
