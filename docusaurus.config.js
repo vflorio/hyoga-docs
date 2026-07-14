@@ -95,7 +95,7 @@ const config = {
             items: [
               {
                 label: 'Hyoga Docs',
-                to: '/docs/hyoga',
+                to: '/docs/introduction',
               },
             ],
           },

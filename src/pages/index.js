@@ -3,6 +3,7 @@ import Link from '@docusaurus/Link';
 import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
 import Layout from '@theme/Layout';
 import HomepageFeatures from '@site/src/components/HomepageFeatures';
+import HyogaExperience from '@site/src/components/HyogaExperience';
 
 import Heading from '@theme/Heading';
 import styles from './index.module.css';
@@ -19,7 +20,7 @@ function HomepageHeader() {
         <div className={styles.buttons}>
           <Link
             className="button button--secondary button--lg"
-            to="/docs/hyoga">
+            to="/docs/introduction">
             Open Hyoga Docs
           </Link>
         </div>
@@ -36,6 +37,25 @@ export default function Home() {
       description="Description will go into a meta tag in <head />">
       <HomepageHeader />
       <main>
+        <section className={styles.playerSection}>
+          <div className="container">
+            <HyogaExperience
+              title="Hyoga Live Playground"
+              subtitle="Home preview: autoplay video is loaded immediately. Use variants to switch Aurora environments, ads, deferred ad init, and tracker setup."
+              initialVariantKey="autoplayVideo"
+              variantKeys={[
+                'autoplayVideo',
+                'auroraProd',
+                'auroraStage',
+                'sonic',
+                'withAds',
+                'withAdsDeferred',
+                'withTracker',
+                'withGtag',
+              ]}
+            />
+          </div>
+        </section>
         <HomepageFeatures />
       </main>
     </Layout>
