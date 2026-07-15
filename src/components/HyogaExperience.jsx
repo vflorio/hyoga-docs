@@ -99,11 +99,6 @@ export default function HyogaExperience({
 
   return (
     <section style={{ display: 'grid', gap: '1rem' }}>
-      <div>
-        {title ? <h2 style={{ marginBottom: '0.35rem' }}>{title}</h2> : null}
-        {subtitle ? <p style={{ margin: 0 }}>{subtitle}</p> : null}
-      </div>
-
       {variants.length > 1 ? (
         <label style={{ maxWidth: 480 }}>
           Variant

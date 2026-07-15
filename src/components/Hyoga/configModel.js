@@ -13,7 +13,7 @@ export const CONFIG_FIELDS_BY_DOMAIN = {
   runtime: ['videolibrary', 'sourcetype', 'locale', 'realm', 'endpoint'],
   source: ['assetid', 'playbacktype', 'sourceparams'],
   behavior: ['autoplay', 'muted', 'hideoverlay', 'disableobserver'],
-  monetization: ['adsystem', 'deferredadinit'],
+  ads: ['adsystem', 'deferredadinit'],
   tracking: ['globaleventsmanager'],
 };
 
@@ -22,7 +22,7 @@ export const DOMAIN_LABELS = {
   runtime: 'Runtime',
   source: 'Source',
   behavior: 'Behavior',
-  monetization: 'Monetization',
+  ads: 'Advertising',
   tracking: 'Tracking',
 };
 
@@ -60,8 +60,8 @@ export const BASE_CONFIG_BY_DOMAIN = {
     disableobserver: 'false',
   },
 
-  // ----- Monetization block -----
-  monetization: {
+  // ----- ads block -----
+  ads: {
     adsystem: '',
     deferredadinit: 'false',
   },
@@ -76,8 +76,8 @@ export const DEFAULT_ENVIRONMENT_KEY = 'auroraProd';
 
 export const ENVIRONMENT_DEFINITIONS = {
   auroraProd: {
-    label: 'Aurora prod',
-    description: 'Production endpoint with video playback defaults.',
+    label: 'Aurora CMS (Prod)',
+    description: "" ,
     domains: {
       runtime: {
         sourcetype: 'sonic',
@@ -96,8 +96,8 @@ export const ENVIRONMENT_DEFINITIONS = {
     },
   },
   auroraStage: {
-    label: 'Aurora stage',
-    description: 'Stage endpoint with channel sample defaults.',
+    label: 'Aurora CMS (Stage)',
+    description: "" ,
     domains: {
       runtime: {
         sourcetype: 'sonic',
@@ -116,8 +116,8 @@ export const ENVIRONMENT_DEFINITIONS = {
     },
   },
   sonic: {
-    label: 'Sonic',
-    description: 'Sonic placeholder environment. Implementation details intentionally empty.',
+    label: 'Sonic CMS',
+    description: "" ,
     domains: {
       runtime: {
         sourcetype: 'sonic',
@@ -136,7 +136,7 @@ export const ENVIRONMENT_DEFINITIONS = {
 export const VARIANT_DEFINITIONS = {
   autoplayVideo: {
     label: 'Autoplay video baseline',
-    description: 'Base variant with autoplay enabled.',
+    description: "" ,
     domains: {
       behavior: {
         autoplay: 'true',
@@ -145,26 +145,26 @@ export const VARIANT_DEFINITIONS = {
   },
   withAds: {
     label: 'With FreeWheel ADs',
-    description: 'Enable ad system on top of autoplay video.',
+    description: "" ,
     domains: {
-      monetization: {
+      ads: {
         adsystem: 'fw',
       },
     },
   },
   withAdsDeferred: {
     label: 'With FreeWheel ADs + Deferred AD Request',
-    description: 'Enable ad system and defer ad init.',
+    description: "" ,
     domains: {
-      monetization: {
+      ads: {
         adsystem: 'fw',
         deferredadinit: 'true',
       },
     },
   },
   withTracker: {
-    label: 'With tracker',
-    description: 'Attach a global events manager for trackers integration.',
+    label: 'With Trackers',
+    description: "" ,
     domains: {
       tracking: {
         globaleventsmanager: 'player-uuid-0@lomaEventsManager',
@@ -172,9 +172,8 @@ export const VARIANT_DEFINITIONS = {
     },
   },
   withGtag: {
-    label: 'With G-TAG',
-    description:
-      'Placeholder variant: playback is expected to wait for a Google tag readiness variable on window.',
+    label: 'With Google Tag Manager',
+    description: "",
     domains: {
       behavior: {
         autoplay: 'false',
