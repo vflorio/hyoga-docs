@@ -4,7 +4,20 @@ sidebar_position: 1
 
 # Introduction
 
-Hyoga Player is an abstract video player over different core video players 
+```mermaid
+graph TD
+    A[Hyoga Common Core<br/><small>GenericContentPlayer / EventsManager / Trackers</small>] --> B[hyoga-web.min.js<br/><b>Web Bundle</b>]
+    A --> C[hyoga-hbbtv.min.js<br/><b>HbbTV Bundle</b>]
+
+    B --> D[Video.js]
+    D --> G[videojs-freewheel]
+
+    C --> E[hls.js]
+    E --> H[hlsjs-freewheel]
+
+    C --> F[dash.js]
+    F --> I[dashjs-freewheel]
+```
 
 ## Current project scope
 - Web player (Chrome, Safari, Firefox, Edge) for mobile and desktop

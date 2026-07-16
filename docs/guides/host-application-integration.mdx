@@ -1,12 +1,14 @@
 ---
-sidebar_position: 4
+sidebar_position: 5
 ---
 
-# Integration
+# Host Application Integration
 
-This guide covers how to integrate Hyoga into a host application
+This guide covers how to integrate Hyoga into a host application.
 
----
+Hyoga is a set of **[Web Components](https://developer.mozilla.org/en-US/docs/Web/API/Web_components)**, make sure your platform [supports it](https://caniuse.com/web-components). 
+otherwise, install [polyfills](https://github.com/webcomponents/polyfills).
+
 
 ## Loading Hyoga
 
@@ -31,11 +33,10 @@ window._hyoga = { deviceUUID: '...' };
 window.dataLayer = window.dataLayer || [];
 ```
 
----
 
 ## DOM Setup
 
-Hyoga is a set of **Web Components**. The player is created by inserting `<hyoga-player>` markup into the DOM. This is the core integration point — every attribute maps to a Hyoga configuration option.
+The player is created by inserting `<hyoga-player>` markup into the DOM. This is the core integration point — every attribute maps to a Hyoga configuration option.
 
 ### VOD Player
 
@@ -86,7 +87,7 @@ Hyoga is a set of **Web Components**. The player is created by inserting `<hyoga
 ### Attribute Reference
 
 :::tip
-The full attribute API reference with detailed descriptions is also available in the [API documentation](api#hyoga-player-attributes).
+The full attribute API reference with detailed descriptions is also available in the [API documentation](../api#hyoga-player-attributes).
 :::
 
 ## Player Lifecycle
@@ -115,7 +116,7 @@ document.addEventListener('Hyoga.Ready', () => {
 ### 2. Control via EventsManager
 
 Once `Hyoga.Ready` fires, the global EventsManager is available. 
-See the [API documentation](api#eventsmanager) for full details on [`sub()`](api#subcategory-playerid-events-callback), [`pub()`](api#pubcategory-playerid-event-data), and [`destroy()`](api#destroyplayerid-eventcategories).
+See the [API documentation](../api#eventsmanager) for full details on [`sub()`](../api#subcategory-playerid-events-callback), [`pub()`](../api#pubcategory-playerid-event-data), and [`destroy()`](../api#destroyplayerid-eventcategories).
 
 #### Play / Pause
 
@@ -202,4 +203,3 @@ document.removeEventListener('Hyoga.Ready', onReady);
 document.getElementById('player-root').innerHTML = '';
 ```
 
----

@@ -137,14 +137,14 @@ lomaEventsManager.sub("video", "player001", ["sourceloaded"], (event, data) => {
 ```
 
 :::caution
-`window.lomaEventsManager` is only available after a `<hyoga-player>` element with a [`globaleventsmanager`](integration#core-attributes) attribute has been connected to the DOM. Any attempt to use it before that will result in `undefined`.
+`window.lomaEventsManager` is only available after a `<hyoga-player>` element with a [`globaleventsmanager`](guides/host-application-integration#core-attributes) attribute has been connected to the DOM. Any attempt to use it before that will result in `undefined`.
 :::
 
 ---
 
 ## `<hyoga-player>` Attributes
 
-The `<hyoga-player>` Web Component accepts the following attributes to configure its behavior. For full integration examples and lifecycle details, see the [Integration guide](integration#dom-setup).
+The `<hyoga-player>` [Web Component](https://developer.mozilla.org/en-US/docs/Web/API/Web_components) accepts the following attributes to configure its behavior. For full integration examples and lifecycle details, see the [Integration guide](guides/host-application-integration#dom-setup).
 
 ### Core
 
@@ -152,15 +152,14 @@ The `<hyoga-player>` Web Component accepts the following attributes to configure
 |-----------|----------|---------|-------------|
 | `id` | yes | — | Unique Hyoga manager identifier |
 | `uid` | yes | — | Player UID, used as addressing key in all `pub`/`sub` calls |
-| [`globaleventsmanager`](integration#core-attributes) | yes | — | Format `<uid>@<globalVarName>` — creates/reuses `window[globalVarName]` |
+| [`globaleventsmanager`](guides/host-application-integration#core-attributes) | yes | — | Format `<uid>@<globalVarName>` — creates/reuses `window[globalVarName]` |
 | `playerselector` | no | `hyogaPlayer-<uid>` | CSS selector for the inner video element |
-| [`videolibrary`](integration#core-attributes) | no | `videojs` | Player engine: `dashjs`, `hlsjs`, or `videojs` |
-| [`sourcetype`](integration#core-attributes) | no | `sonic` | Content source: `sonic` or `direct` |
-| [`playbacktype`](integration#core-attributes) | no | `video` | `video` or `channel` |
+| [`videolibrary`](guides/host-application-integration#core-attributes) | no | `videojs` | Player engine: `dashjs`, `hlsjs`, or `videojs` |
+| [`sourcetype`](guides/host-application-integration#core-attributes) | no | `sonic` | Content source: `sonic` or `direct` |
+| [`playbacktype`](guides/host-application-integration#core-attributes) | no | `video` | `video` or `channel` |
 
 ### Sonic Source
 
-Applies when `sourcetype="sonic"` (default). See [Integration → Sonic Source Attributes](integration#sonic-source-attributes).
 
 | Attribute | Required | Default | Description |
 |-----------|----------|---------|-------------|
@@ -173,7 +172,6 @@ Applies when `sourcetype="sonic"` (default). See [Integration → Sonic Source A
 
 ### Direct Source
 
-Applies when `sourcetype="direct"`. See [Integration → Direct Source Attributes](integration#direct-source-attributes).
 
 | Attribute | Required | Default | Description |
 |-----------|----------|---------|-------------|

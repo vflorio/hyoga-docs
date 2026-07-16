@@ -17,7 +17,6 @@
 const sidebars = {
   docsSidebar: [
     "introduction",
-    "quickstart",
     {
       type: "category",
       label: "API",
@@ -31,7 +30,11 @@ const sidebars = {
       ],
     },
     "configuration",
-    "integration",
+    {
+      type: "category",
+      label: "Guides",
+      items: ["guides/quickstart", "guides/host-application-integration", "guides/adding-avcontrol-player-core"],
+    },
   ],
 
   // But you can create a sidebar manually

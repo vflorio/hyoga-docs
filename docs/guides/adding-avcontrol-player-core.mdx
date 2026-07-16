@@ -1,0 +1,393 @@
+---
+sidebar_position: 1
+---
+
+# Adding an A/V Control Player Core
+
+This guide explains how to implement a new `GenericContentPlayer` subclass that uses the **HbbTV A/V Control object** (`<object type="video/broadcast">` / `<object type="video/mpeg">`) instead of the HTML5 `<video>` element combined with dash.js or hls.js.
+
+---
+
+## Why A/V Control?
+
+On many HbbTV devices (especially older profiles up to HbbTV 1.5), the **A/V Control object** is the only reliable way to play MPEG-DASH or DVB streams. Unlike the HTML5 video element:
+
+| Feature | HTML5 Video + dash.js/hls.js | A/V Control Object |
+|---------|-----------------------------|--------------------|
+| Adaptive streaming | JS-based ABR (MSE required) | Native ABR by chipset |
+| DRM | EME API + JS shim | Native CI+ / OIPF DRM |
+| Device support | HbbTV 2.0+, MSE-capable TVs | HbbTV 1.0 – 2.0, all profiles |
+| Subtitles | In-band or JS-rendered | Native EBU-TT / DVB subs |
+| Resource usage | Higher (JS ABR + MSE buffers) | Lower (hardware pipeline) |
+
+If your target includes legacy HbbTV devices or you want to leverage the native broadcast/IP pipeline, A/V Control is the way to go.
+
+---
+
+## Architecture Overview
+
+Hyoga's player architecture is layered:
+
+```
+┌─────────────────────────────────────────────┐
+│  VideoPlayerComponent (Web Component)       │
+│  ┌───────────────────────────────────────┐  │
+│  │  GenericContentPlayer (base class)    │  │
+│  │  ┌─────────────────────────────────┐  │  │
+│  │  │  Player Core (library-specific) │  │  │
+│  │  │  - DashjsContentPlayer          │  │  │
+│  │  │  - HlsjsContentPlayer           │  │  │
+│  │  │  - VideojsContentPlayer         │  │  │
+│  │  │  - AvControlContentPlayer (NEW) │  │  │
+│  │  └─────────────────────────────────┘  │  │
+│  └───────────────────────────────────────┘  │
+└─────────────────────────────────────────────┘
+```
+
+Each "Player Core" extends `GenericContentPlayer` and implements the playback lifecycle by wrapping a specific underlying player technology. Your new `AvControlContentPlayer` will wrap the OIPF A/V Control embedded object.
+
+---
+
+## Step 1 — Create the Player Core File
+
+Create `src/avcontrol/player-core.js`:
+
+```js
+import { GenericContentPlayer } from "../common/genericplayer-core";
+
+class AvControlContentPlayer extends GenericContentPlayer {
+    constructor(params) {
+        super(params);
+
+        /**
+         * Reference to the A/V Control <object> element.
+         * The element is expected to already exist in the DOM with
+         * id === this.playerSelector (same convention as other cores).
+         */
+        this.avObject = document.getElementById(this.playerSelector);
+
+        this.init = () => {
+            if (!this.playbackReady) {
+                this.playbackReady = true;
+                this.player = this._createPlayerFacade();
+                this.proxyNativeVideo({
+                    videoNativeEventsProxy: this.player.generate.bind(this.player)
+                });
+                this.initPlaybackObserver();
+                this.initTrackers(this.metaData);
+                this.initPlayer({});
+            }
+        };
+
+        // Auto-init
+        if (this.playerSelector && this.streamType) {
+            this.init();
+        }
+    }
+
+    /**
+     * Creates a facade object that normalizes the A/V Control API
+     * to the interface GenericContentPlayer expects (play, pause,
+     * currentTime, duration, etc.).
+     */
+    _createPlayerFacade() {
+        const av = this.avObject;
+        const self = this;
+
+        return {
+            // Identity
+            id: () => av.id || self.playerSelector,
+
+            // Transport controls
+            play: () => { av.play(1); },
+            pause: () => { av.stop(); },
+            paused: () => av.playState !== 1,  // 1 = playing
+            seek: (seconds) => { av.seek(seconds * 1000); }, // A/V Control uses ms
+
+            // State queries
+            currentTime: (pos) => {
+                if (typeof pos === 'number') {
+                    av.seek(pos * 1000);
+                }
+                return (av.playPosition || 0) / 1000;
+            },
+            duration: () => (av.playTime || 0) / 1000,
+            remainingTime: () => {
+                const dur = (av.playTime || 0) / 1000;
+                const cur = (av.playPosition || 0) / 1000;
+                return dur - cur;
+            },
+            ended: () => av.playState === 5, // 5 = finished
+            seeking: () => false,
+
+            // Dimensions (A/V Control handles this natively)
+            currentWidth: () => av.width,
+            currentHeight: () => av.height,
+
+            // Poster (no-op for A/V Control)
+            poster: () => {},
+
+            // Synthetic event dispatch
+            generate: (eventName, eventObject) => {
+                if (!eventObject) eventObject = {};
+                const listeners = self._eventListeners[eventName] || [];
+                listeners.forEach(cb => cb(self.createSyntheticEvent(eventObject)));
+            },
+
+            // Event system
+            on: (event, callback) => {
+                if (!self._eventListeners[event]) {
+                    self._eventListeners[event] = [];
+                }
+                self._eventListeners[event].push(callback);
+            },
+            once: (event, callback) => {
+                const wrapper = (e) => {
+                    callback(e);
+                    self._eventListeners[event] = self._eventListeners[event].filter(fn => fn !== wrapper);
+                };
+                if (!self._eventListeners[event]) {
+                    self._eventListeners[event] = [];
+                }
+                self._eventListeners[event].push(wrapper);
+            },
+            off: (event, callback) => {
+                if (self._eventListeners[event]) {
+                    self._eventListeners[event] = self._eventListeners[event].filter(fn => fn !== callback);
+                }
+            },
+
+            // Cleanup
+            dispose: () => {
+                av.stop();
+                self._eventListeners = {};
+            },
+
+            // Ads placeholder (no FreeWheel on A/V Control)
+            ads: {}
+        };
+    }
+}
+
+export default {
+    library: AvControlContentPlayer
+};
+```
+
+---
+
+## Step 2 — Register with the HbbTV Player Component
+
+Edit `src/common/components/hbbtv-playercomponent.js` to include the new core:
+
+```js
+import hlsjsContentPlayer from '../../hlsjs/player-core';
+import dashjsContentPlayer from '../../dashjs/player-core';
+import avcontrolContentPlayer from '../../avcontrol/player-core';
+import { VideoPlayerComponent } from './playercomponent';
+
+const contentPlayers = {
+    hlsjs: hlsjsContentPlayer,
+    dashjs: dashjsContentPlayer,
+    avcontrol: avcontrolContentPlayer,
+};
+
+class HbbTVVideoPlayerComponent extends VideoPlayerComponent {
+    constructor() {
+        super(contentPlayers);
+    }
+}
+
+export { HbbTVVideoPlayerComponent };
+```
+
+---
+
+## Step 3 — Update the VideoPlayerComponent Template
+
+The `VideoPlayerComponent` base class generates the video element HTML based on `videoLibraryType`. Add a case for `avcontrol` in `playercomponent.js`:
+
+```js
+case 'avcontrol':
+    videoHTML = `<div id="playerContainer-${playerSelector}" style="position: relative;">
+        <object id="${playerSelector}"
+                type="video/broadcast"
+                width="1280" height="720"
+                style="position:absolute;top:0;left:0;width:100%;height:100%;">
+        </object>
+    </div>`;
+    break;
+```
+
+:::note
+Use `type="video/broadcast"` for broadcast-related streams or `type="video/mpeg"` for pure IP MPEG-DASH content, depending on your HbbTV profile requirements.
+:::
+
+---
+
+## Step 4 — Handle A/V Control Lifecycle Events
+
+The A/V Control object emits state changes via `PlayStateChange` events. Map them to Hyoga's normalized event system:
+
+```js
+// Inside AvControlContentPlayer constructor, after _createPlayerFacade()
+this._eventListeners = {};
+
+this._bindAvEvents = () => {
+    this.avObject.onPlayStateChange = () => {
+        const state = this.avObject.playState;
+        switch (state) {
+            case 0: // stopped
+                this.player.generate('pause');
+                break;
+            case 1: // playing
+                this.player.generate('playing');
+                break;
+            case 2: // paused
+                this.player.generate('pause');
+                break;
+            case 3: // connecting
+                this.player.generate('waiting');
+                break;
+            case 4: // buffering
+                this.player.generate('waiting');
+                break;
+            case 5: // finished
+                this.player.generate('ended');
+                break;
+            case 6: // error
+                this.player.generate('error');
+                break;
+        }
+    };
+
+    // Periodic timeupdate (A/V Control doesn't emit this natively)
+    this._timeupdateInterval = setInterval(() => {
+        if (this.avObject.playState === 1) {
+            this.player.generate('timeupdate');
+        }
+    }, 250);
+};
+```
+
+---
+
+## Step 5 — Setting the Source (DRM-protected or clear)
+
+```js
+this.setPlayerSource = ({ playbackUrl, keySystems = undefined }) => {
+    // Stop current playback before switching source
+    this.avObject.stop();
+
+    if (keySystems && keySystems.drmEnabled) {
+        // For OIPF DRM, use the DRM manager agent
+        const drmAgent = document.getElementById('oipfDrmAgent') 
+            || this._createDrmAgent();
+        
+        const drmMessage = this._buildDrmMessage(keySystems);
+        drmAgent.sendDrmMessage(keySystems.drmType, drmMessage);
+        
+        drmAgent.onDRMRightsError = (errorState, contentID, drmSystemID) => {
+            this.player.generate('error', { errorState, contentID, drmSystemID });
+        };
+    }
+
+    // Set channel/content data and play
+    this.avObject.data = playbackUrl;
+    this.avObject.play(1);
+};
+
+this._createDrmAgent = () => {
+    const agent = document.createElement('object');
+    agent.id = 'oipfDrmAgent';
+    agent.type = 'application/oipfDrmAgent';
+    agent.style.display = 'none';
+    document.body.appendChild(agent);
+    return agent;
+};
+
+this._buildDrmMessage = (keySystems) => {
+    // Build XML DRM message per OIPF DAE spec
+    // Customize based on your DRM provider (PlayReady, Marlin, etc.)
+    const scheme = keySystems.schemes.playready || keySystems.schemes.widevine;
+    return `<?xml version="1.0" encoding="utf-8"?>
+<PlayReadyInitiator xmlns="http://schemas.microsoft.com/DRM/2007/03/protocols/">
+  <LicenseAcquisition>
+    <Header><WRMHEADER></WRMHEADER></Header>
+    <CustomData>${scheme.licenseUrl}</CustomData>
+  </LicenseAcquisition>
+</PlayReadyInitiator>`;
+};
+```
+
+---
+
+## Step 6 — Usage in Host Application
+
+Once the new core is registered, use it like any other Hyoga videolibrary:
+
+```html
+<hyoga-player
+  id="hyogaManager-player-001"
+  uid="player-001"
+  playerselector="hyogaPlayer-001"
+  videolibrary="avcontrol"
+  sourcetype="sonic"
+  endpoint="https://public.aurora.enhanced.live"
+  realm="it"
+  assetid="12345"
+  playbacktype="channel"
+  autoplay="true"
+>
+  <hyoga-videoplayer hyogamanager="hyogaManager-player-001" />
+</hyoga-player>
+```
+
+---
+
+## Key Differences from dash.js/hls.js Cores
+
+| Aspect | dash.js / hls.js Core | A/V Control Core |
+|--------|----------------------|------------------|
+| `this.player` | dash.js `MediaPlayer` / hls.js instance | Custom facade over `<object>` |
+| Source loading | `attachSource()` / `loadSource()` | `avObject.data = url; avObject.play(1)` |
+| DRM | EME via `setProtectionData()` | OIPF DRM Agent (`sendDrmMessage`) |
+| Events | Library-specific events | `onPlayStateChange` + synthetic dispatch |
+| Seeking | `player.seek(seconds)` | `avObject.seek(milliseconds)` |
+| Dispose | `player.destroy()` / `player.dispose()` | `avObject.stop()` |
+| ABR | JS-based (dash.js/hls.js logic) | Native chipset ABR |
+| FreeWheel Ads | Supported via plugin | Not supported (separate ad flow) |
+
+---
+
+## Advertising on A/V Control
+
+The FreeWheel plugin architecture used by dash.js and hls.js cores relies on companion `<video>` elements for ad rendering. With A/V Control, advertising typically follows one of these patterns:
+
+1. **Server-side Ad Insertion (SSAI)** — Ads are stitched into the manifest server-side. No client-side ad SDK needed.
+2. **Companion banner ads** — Display HTML overlay ads alongside the A/V Control object, triggered by stream events.
+3. **Pre-roll via separate `<video>` element** — Play pre-roll in an HTML5 video element, then switch to A/V Control for main content.
+
+---
+
+## Testing
+
+Test on real HbbTV hardware or an HbbTV emulator. Key things to verify:
+
+- `playState` transitions are correctly mapped
+- DRM license acquisition works with your DRM provider
+- Seek works (some devices only support seek in milliseconds with limited precision)
+- `timeupdate` synthetic events fire reliably
+- Dispose properly releases the broadcast resource
+
+---
+
+## Summary
+
+Adding A/V Control as a player core in Hyoga follows the same pattern as dash.js or hls.js:
+
+1. Create a class extending `GenericContentPlayer`
+2. Implement a player facade that satisfies the expected interface (`play`, `pause`, `currentTime`, `duration`, events)
+3. Register the core in `hbbtv-playercomponent.js`
+4. Add the DOM template in `playercomponent.js`
+5. Use `videolibrary="avcontrol"` in `<hyoga-player>` markup
