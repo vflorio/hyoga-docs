@@ -1,5 +1,9 @@
 export const DEFAULT_HYOGA_SCRIPT = "https://cdn.hyogaplayer.com/hyoga-web.min.js";
 
+export const EXTERNAL_DEPENDENCIES = [
+  '<script src="https://cdnjs.cloudflare.com/ajax/libs/bowser/2.11.0/bundled.min.js" integrity="sha512-hsF/cpBvi/vjCP4Ps/MrPUFk6l4BqcGbzVUhqjJdX2SmAri1Oj8FBUGCvBiKHYd6gg3vLsV16CtIRNOvK5X4lQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>',
+];
+
 // Necessario per simulare consenso cookie accettato
 const DEFAULT_TCF_RESPONSE = {
   cmpId: 28,
@@ -657,9 +661,11 @@ export function buildGlobalBootstrapCode(runtimeContext) {
 
   const blocks = [...assignmentLines, ...(runtimeContext.codeBlocks || [])].filter(Boolean);
 
-  if (blocks.length === 0) {
-    return "";
+  const parts = [...EXTERNAL_DEPENDENCIES];
+
+  if (blocks.length > 0) {
+    parts.push(`<script>\n${blocks.join("\n\n")}\n</script>`);
   }
 
-  return `<script>\n${blocks.join("\n\n")}\n</script>`;
+  return parts.join("\n");
 }

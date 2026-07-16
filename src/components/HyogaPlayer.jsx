@@ -185,7 +185,7 @@ function EditorLayout({
 function PreviewLayout({ config, fullEmbedCode, displayJson, onDisplayJsonChange, hyogaScript, runtimeContext }) {
   return (
     <Stack sx={{ gap: 1, width: "100%" }}>
-      <Player config={config} hyogaScript={hyogaScript} runtimeContext={runtimeContext} maxWidth={"100%"} />
+      <Player config={config} hyogaScript={hyogaScript} runtimeContext={runtimeContext} maxWidth={960} />
       <CodeOutput
         config={config}
         fullEmbedCode={fullEmbedCode}

@@ -1,4 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
+import { EXTERNAL_DEPENDENCIES } from "./configModel";
+
+const EXTERNAL_DEPENDENCY_URLS = EXTERNAL_DEPENDENCIES.map((tag) => {
+  const match = tag.match(/src="([^"]+)"/);
+  return match ? match[1] : null;
+}).filter(Boolean);
 
 function loadScript(src) {
   return new Promise((resolve, reject) => {
@@ -56,6 +62,9 @@ export default function HyogaRuntimePlayer({ config, hyogaScript, runtimeContext
 
       try {
         applyRuntimeContext(runtimeContext);
+        for (const depUrl of EXTERNAL_DEPENDENCY_URLS) {
+          await loadScript(depUrl);
+        }
         await loadScript(hyogaScript);
         if (!mounted) return;
 
