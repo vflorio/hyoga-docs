@@ -23,13 +23,13 @@ const config = {
   url: "https://vflorio.github.io",
   // Set the /<baseUrl>/ pathname under which your site is served
   // For GitHub pages deployment, it is often '/<projectName>/'
-  baseUrl: "/hyoga-docs/",
+  baseUrl: "/",
   trailingSlash: false,
 
   // GitHub pages deployment config.
   // If you aren't using GitHub pages, you don't need these.
   organizationName: "vflorio", // Usually your GitHub org/user name.
-  projectName: "hyoga-docs", // Usually your repo name.
+  projectName: "vflorio.github.io", // Usually your repo name.
 
   onBrokenLinks: "throw",
 
