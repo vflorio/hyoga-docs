@@ -196,12 +196,12 @@ export const GLOBAL_MODULE_DEFINITIONS = {
   analyticsContext: {
     label: "Analytics context",
     globals: {
-      digitalData: DEFAULT_DIGITAL_DATA,
+      //digitalData: DEFAULT_DIGITAL_DATA,
     },
     transformGlobals(globals) {
       return {
         ...globals,
-        digitalData: withDynamicDigitalData(globals.digitalData),
+        //digitalData: withDynamicDigitalData(globals.digitalData),
       };
     },
   },
@@ -248,7 +248,9 @@ export const CONFIG_FIELDS_BY_DOMAIN = {
   runtime: ["videolibrary", "sourcetype", "locale", "realm", "endpoint"],
   source: ["assetid", "playbacktype", "sourceparams"],
   behavior: ["autoplay", "muted", "hideoverlay", "disableobserver"],
-  ads: ["adsystem", "deferredadinit"],
+  ads: [
+    //  "adsystem", "deferredadinit"
+  ],
 };
 
 export const DOMAIN_LABELS = {

@@ -86,7 +86,7 @@ export default function HyogaRuntimePlayer({ config, hyogaScript, bowserScript, 
 
   return (
     <>
-      {error ? <p style={{ color: "#b42318" }}>{error}</p> : <p>{ready ? "" : "Loading scripts..."}</p>}
+      {error ? <p style={{ color: "#b42318" }}>{error}</p> : !ready ? <p>Loading scripts...</p> : null}
       <div
         style={{
           width: "100%",
