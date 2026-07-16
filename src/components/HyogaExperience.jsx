@@ -1,73 +1,70 @@
-import React, { useMemo, useState } from 'react';
-import CodeBlock from '@theme/CodeBlock';
-import ConfigForm from './Hyoga/ConfigForm';
-import Player from './Hyoga/Player';
+import CodeBlock from "@theme/CodeBlock";
+import React, { useMemo, useState } from "react";
+import ConfigForm from "./Hyoga/ConfigForm";
 import {
-  CONTENT_MODE_DEFINITIONS,
-  DEFAULT_ENVIRONMENT_KEY,
-  applyVariant,
   applyContentMode,
-  detectContentMode,
-  DEFAULT_BOWSER_SCRIPT,
-  DEFAULT_HYOGA_SCRIPT,
+  applyVariant,
+  buildGlobalBootstrapCode,
+  CONTENT_MODE_DEFINITIONS,
   createEnvironmentConfig,
-  getAvailableVariants,
+  DEFAULT_BOWSER_SCRIPT,
+  DEFAULT_ENVIRONMENT_KEY,
+  DEFAULT_HYOGA_SCRIPT,
+  detectContentMode,
   getAvailableEnvironments,
-} from './Hyoga/configModel';
+  getAvailableVariants,
+  getRuntimeContext,
+} from "./Hyoga/configModel";
+import Player from "./Hyoga/Player";
 
 const PLAYER_ATTRIBUTE_ORDER = [
-  'id',
-  'uid',
-  'playerselector',
-  'videolibrary',
-  'sourcetype',
-  'playertype',
-  'adsystem',
-  'locale',
-  'globaleventsmanager',
-  'hyogamanager',
-  'disableobserver',
-  'endpoint',
-  'realm',
-  'assetid',
-  'playbacktype',
-  'sourceparams',
-  'autoplay',
-  'muted',
-  'deferredadinit',
-  'hideoverlay',
+  "id",
+  "uid",
+  "playerselector",
+  "videolibrary",
+  "sourcetype",
+  "playertype",
+  "adsystem",
+  "locale",
+  "globaleventsmanager",
+  "hyogamanager",
+  "disableobserver",
+  "endpoint",
+  "realm",
+  "assetid",
+  "playbacktype",
+  "sourceparams",
+  "autoplay",
+  "muted",
+  "deferredadinit",
+  "hideoverlay",
 ];
 
 function escapeAttrValue(value) {
-  return String(value).replace(/"/g, '&quot;');
+  return String(value).replace(/"/g, "&quot;");
 }
 
 function buildPlayerDomCode(config) {
   const attrs = PLAYER_ATTRIBUTE_ORDER.map((key) => [key, config[key]])
-    .filter(([, value]) => value !== undefined && value !== null && value !== '')
+    .filter(([, value]) => value !== undefined && value !== null && value !== "")
     .map(([key, value]) => `  ${key}="${escapeAttrValue(value)}"`)
-    .join('\n');
+    .join("\n");
 
-  const manager = config.hyogamanager || config.id || '';
+  const manager = config.hyogamanager || config.id || "";
 
   return `<hyoga-player\n${attrs}\n>\n  <hyoga-videoplayer hyogamanager="${escapeAttrValue(manager)}" />\n</hyoga-player>`;
 }
 
 export default function HyogaExperience({
-  title = '',
-  subtitle = '',
-  initialVariantKey = 'autoplayVideo',
+  initialVariantKey = "autoplayVideo",
   initialEnvironmentKey = DEFAULT_ENVIRONMENT_KEY,
-  variantKeys = ['autoplayVideo'],
+  variantKeys = ["autoplayVideo"],
   environmentKeys = [DEFAULT_ENVIRONMENT_KEY],
   showConfigEditor = false,
   showScriptInputs = false,
 }) {
   const variants = useMemo(() => getAvailableVariants(variantKeys), [variantKeys]);
-  const environments = useMemo(
-    () => getAvailableEnvironments(environmentKeys),
-    [environmentKeys]
-  );
+  const environments = useMemo(() => getAvailableEnvironments(environmentKeys), [environmentKeys]);
 
   const [selectedEnvironmentKey, setSelectedEnvironmentKey] = useState(initialEnvironmentKey);
   const [selectedVariantKey, setSelectedVariantKey] = useState(initialVariantKey);
@@ -78,17 +75,20 @@ export default function HyogaExperience({
   });
 
   const [displayJson, setDisplayJson] = useState(false);
-  const [contentMode, setContentMode] = useState(() =>
-    detectContentMode(config)
-  );
+  const [contentMode, setContentMode] = useState(() => detectContentMode(config));
   const [hyogaScript, setHyogaScript] = useState(DEFAULT_HYOGA_SCRIPT);
   const [bowserScript, setBowserScript] = useState(DEFAULT_BOWSER_SCRIPT);
 
-  const selectedVariant = variants.find((variant) => variant.key === selectedVariantKey);
-  const selectedEnvironment = environments.find(
-    (environment) => environment.key === selectedEnvironmentKey
+  const selectedEnvironment = environments.find((environment) => environment.key === selectedEnvironmentKey);
+  const runtimeContext = useMemo(
+    () => getRuntimeContext(selectedEnvironmentKey, selectedVariantKey),
+    [selectedEnvironmentKey, selectedVariantKey],
   );
+  const globalBootstrapCode = useMemo(() => buildGlobalBootstrapCode(runtimeContext), [runtimeContext]);
   const domCode = useMemo(() => buildPlayerDomCode(config), [config]);
+  const fullEmbedCode = useMemo(() => {
+    return [globalBootstrapCode, domCode].filter(Boolean).join("\n\n");
+  }, [globalBootstrapCode, domCode]);
 
   function composeConfig(environmentKey, variantKey, modeKey) {
     let next = createEnvironmentConfig(environmentKey);
@@ -98,63 +98,40 @@ export default function HyogaExperience({
   }
 
   return (
-    <section style={{ display: 'grid', gap: '1rem' }}>
-      {variants.length > 1 ? (
-        <label style={{ maxWidth: 480 }}>
-          Variant
-          <select
-            value={selectedVariantKey}
-            onChange={(e) => {
-              const nextKey = e.target.value;
-              setSelectedVariantKey(nextKey);
-              setConfig(composeConfig(selectedEnvironmentKey, nextKey, contentMode));
-            }}
-            style={{ display: 'block', width: '100%' }}>
-            {variants.map((variant) => (
-              <option key={variant.key} value={variant.key}>
-                {variant.label}
-              </option>
-            ))}
-          </select>
-        </label>
-      ) : null}
+    <section style={{ display: "grid", gap: "1rem" }}>
+      <div
+        style={{
+          display: showConfigEditor ? "none" : "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          gap: "1rem",
+          flexWrap: "wrap",
+        }}
+      >
+        {environments.length > 1 ? (
+          <label style={{ flexGrow: 1 }}>
+            Environment
+            <select
+              value={selectedEnvironmentKey}
+              onChange={(e) => {
+                const nextEnvironmentKey = e.target.value;
+                const nextConfig = composeConfig(nextEnvironmentKey, selectedVariantKey, contentMode);
+                setSelectedEnvironmentKey(nextEnvironmentKey);
+                setConfig(nextConfig);
+                setContentMode(detectContentMode(nextConfig));
+              }}
+              style={{ display: "block", width: "100%" }}
+            >
+              {environments.map((environment) => (
+                <option key={environment.key} value={environment.key}>
+                  {environment.label}
+                </option>
+              ))}
+            </select>
+          </label>
+        ) : null}
 
-      {selectedVariant?.description ? (
-        <p style={{ margin: 0 }}>{selectedVariant.description}</p>
-      ) : null}
-
-      {environments.length > 1 ? (
-        <label style={{ maxWidth: 480 }}>
-          Environment
-          <select
-            value={selectedEnvironmentKey}
-            onChange={(e) => {
-              const nextEnvironmentKey = e.target.value;
-              const nextConfig = composeConfig(
-                nextEnvironmentKey,
-                selectedVariantKey,
-                contentMode
-              );
-              setSelectedEnvironmentKey(nextEnvironmentKey);
-              setConfig(nextConfig);
-              setContentMode(detectContentMode(nextConfig));
-            }}
-            style={{ display: 'block', width: '100%' }}>
-            {environments.map((environment) => (
-              <option key={environment.key} value={environment.key}>
-                {environment.label}
-              </option>
-            ))}
-          </select>
-        </label>
-      ) : null}
-
-      {selectedEnvironment?.description ? (
-        <p style={{ margin: 0 }}>{selectedEnvironment.description}</p>
-      ) : null}
-
-      {showConfigEditor ? (
-        <label style={{ maxWidth: 320 }}>
+        <label style={{ flexGrow: 1 }}>
           Content mode
           <select
             value={contentMode}
@@ -163,7 +140,8 @@ export default function HyogaExperience({
               setContentMode(nextMode);
               setConfig(composeConfig(selectedEnvironmentKey, selectedVariantKey, nextMode));
             }}
-            style={{ display: 'block', width: '100%' }}>
+            style={{ display: "block", width: "100%" }}
+          >
             {Object.entries(CONTENT_MODE_DEFINITIONS).map(([modeKey, mode]) => (
               <option key={modeKey} value={modeKey}>
                 {mode.label}
@@ -171,7 +149,30 @@ export default function HyogaExperience({
             ))}
           </select>
         </label>
-      ) : null}
+
+        {variants.length > 1 ? (
+          <label style={{ flexGrow: 1 }}>
+            Variant
+            <select
+              value={selectedVariantKey}
+              onChange={(e) => {
+                const nextKey = e.target.value;
+                setSelectedVariantKey(nextKey);
+                setConfig(composeConfig(selectedEnvironmentKey, nextKey, contentMode));
+              }}
+              style={{ display: "block", width: "100%" }}
+            >
+              {variants.map((variant) => (
+                <option key={variant.key} value={variant.key}>
+                  {variant.label}
+                </option>
+              ))}
+            </select>
+          </label>
+        ) : null}
+      </div>
+
+      {selectedEnvironment?.description ? <p style={{ margin: 0 }}>{selectedEnvironment.description}</p> : null}
 
       {showConfigEditor ? (
         <ConfigForm
@@ -185,36 +186,30 @@ export default function HyogaExperience({
         />
       ) : null}
 
-      <div style={{
-        display: 'flex',
-        flexDirection: 'row',
-        gap: '1rem',
-        flexWrap: 'wrap',
-        alignItems: 'center',
-        width: '100%',
-      }}>
-        <Player
-          config={config}
-          hyogaScript={hyogaScript}
-          bowserScript={bowserScript}
-        />
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "row",
+          gap: "1rem",
+          flexWrap: "wrap",
+          alignItems: "center",
+          width: "100%",
+        }}
+      >
+        <Player config={config} hyogaScript={hyogaScript} bowserScript={bowserScript} runtimeContext={runtimeContext} />
         <div>
           <form>
-            <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <input
-                type="checkbox"
-                checked={displayJson}
-                onChange={(e) => setDisplayJson(e.target.checked)}
-              />
+            <label style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+              <input type="checkbox" checked={displayJson} onChange={(e) => setDisplayJson(e.target.checked)} />
               JSON
             </label>
           </form>
-          <div style={{ marginTop: '0.75rem', maxWidth: '900px', minWidth: '300px' }}>
+          <div style={{ marginTop: "0.75rem", maxWidth: "900px", minWidth: "300px" }}>
             {displayJson ? (
               <CodeBlock language={"json"}>{JSON.stringify(config, null, 2)}</CodeBlock>
-            ) :
-              <CodeBlock language={"html"}>{domCode}</CodeBlock>
-            }
+            ) : (
+              <CodeBlock language={"html"}>{fullEmbedCode}</CodeBlock>
+            )}
           </div>
         </div>
       </div>

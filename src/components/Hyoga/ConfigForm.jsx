@@ -1,8 +1,5 @@
-import React from 'react';
-import {
-  CONFIG_FIELDS_BY_DOMAIN,
-  DOMAIN_LABELS,
-} from './configModel';
+import React from "react";
+import { CONFIG_FIELDS_BY_DOMAIN, DOMAIN_LABELS } from "./configModel";
 
 export default function ConfigForm({
   config,
@@ -14,7 +11,7 @@ export default function ConfigForm({
   showScriptInputs = true,
 }) {
   return (
-    <div style={{display: 'grid', gap: '0.75rem', maxWidth: 980}}>
+    <div style={{ display: "grid", gap: "0.75rem", maxWidth: 980 }}>
       {showScriptInputs ? (
         <>
           <label>
@@ -23,7 +20,7 @@ export default function ConfigForm({
               type="text"
               value={hyogaScript}
               onChange={(e) => onHyogaScriptChange(e.target.value)}
-              style={{display: 'block', width: '100%'}}
+              style={{ display: "block", width: "100%" }}
             />
           </label>
 
@@ -33,7 +30,7 @@ export default function ConfigForm({
               type="text"
               value={bowserScript}
               onChange={(e) => onBowserScriptChange(e.target.value)}
-              style={{display: 'block', width: '100%'}}
+              style={{ display: "block", width: "100%" }}
             />
           </label>
         </>
@@ -43,15 +40,14 @@ export default function ConfigForm({
         <fieldset
           key={domain}
           style={{
-            border: '1px solid var(--ifm-color-emphasis-300)',
+            border: "1px solid var(--ifm-color-emphasis-300)",
             borderRadius: 8,
-            padding: '0.75rem',
-          }}>
-          <legend style={{padding: '0 0.25rem', fontWeight: 600}}>
-            {DOMAIN_LABELS[domain]}
-          </legend>
+            padding: "0.75rem",
+          }}
+        >
+          <legend style={{ padding: "0 0.25rem", fontWeight: 600 }}>{DOMAIN_LABELS[domain]}</legend>
 
-          <div style={{display: 'grid', gap: '0.5rem', gridTemplateColumns: '1fr 1fr'}}>
+          <div style={{ display: "grid", gap: "0.5rem", gridTemplateColumns: "1fr 1fr" }}>
             {CONFIG_FIELDS_BY_DOMAIN[domain].map((fieldKey) => (
               <label key={fieldKey}>
                 {fieldKey}
@@ -64,7 +60,7 @@ export default function ConfigForm({
                       [fieldKey]: e.target.value,
                     }))
                   }
-                  style={{display: 'block', width: '100%'}}
+                  style={{ display: "block", width: "100%" }}
                 />
               </label>
             ))}
