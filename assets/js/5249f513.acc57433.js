@@ -1,0 +1,1 @@
+"use strict";(self.webpackChunkhyoga_docs=self.webpackChunkhyoga_docs||[]).push([["373"],{7796(o){o.exports=JSON.parse('{"metadata":{"permalink":"/hyoga-docs/blog","page":1,"postsPerPage":10,"totalPages":1,"totalCount":0,"blogDescription":"Blog","blogTitle":"Blog"}}')}}]);

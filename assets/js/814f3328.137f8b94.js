@@ -1,0 +1,1 @@
+"use strict";(self.webpackChunkhyoga_docs=self.webpackChunkhyoga_docs||[]).push([["833"],{5513(s){s.exports=JSON.parse('{"title":"Recent posts","items":[]}')}}]);
