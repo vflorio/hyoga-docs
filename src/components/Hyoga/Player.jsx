@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from "react";
 
 function loadScript(src) {
   return new Promise((resolve, reject) => {
@@ -8,7 +8,7 @@ function loadScript(src) {
       return;
     }
 
-    const script = document.createElement('script');
+    const script = document.createElement("script");
     script.src = src;
     script.async = true;
     script.dataset.hyogaSrc = src;
@@ -19,46 +19,60 @@ function loadScript(src) {
 }
 
 function valueOrUndefined(value) {
-  return value === '' ? undefined : value;
+  return value === "" ? undefined : value;
 }
 
-export default function HyogaRuntimePlayer({
-  config,
-  hyogaScript,
-  bowserScript,
-  maxWidth = 960,
-}) {
-  const [ready, setReady] = useState(false);
-  const [error, setError] = useState('');
+function cloneValue(value) {
+  if (value === undefined) return undefined;
+  return JSON.parse(JSON.stringify(value));
+}
 
-  const rerenderKey = useMemo(() => Object.values(config).join('|'), [config]);
+function applyRuntimeContext(runtimeContext) {
+  if (typeof window === "undefined" || !runtimeContext) return;
+
+  Object.entries(runtimeContext.globals || {}).forEach(([key, value]) => {
+    window[key] = cloneValue(value);
+  });
+
+  (runtimeContext.codeBlocks || []).forEach((codeBlock) => {
+    if (!codeBlock) return;
+    // biome-ignore lint/security/noGlobalEval: <global config>
+    window.eval(codeBlock);
+  });
+}
+
+export default function HyogaRuntimePlayer({ config, hyogaScript, runtimeContext, maxWidth = 960 }) {
+  const [ready, setReady] = useState(false);
+  const [error, setError] = useState("");
+
+  const rerenderKey = useMemo(() => Object.values(config).join("|"), [config]);
 
   useEffect(() => {
     let mounted = true;
 
     async function bootstrap() {
       setReady(false);
-      setError('');
+      setError("");
 
       try {
-        await loadScript(bowserScript);
+        applyRuntimeContext(runtimeContext);
         await loadScript(hyogaScript);
         if (!mounted) return;
 
         const hasHyoga =
-          typeof window !== 'undefined' &&
+          typeof window !== "undefined" &&
           window.customElements &&
-          window.customElements.get('hyoga-player') &&
-          window.customElements.get('hyoga-videoplayer');
+          window.customElements.get("hyoga-player") &&
+          window.customElements.get("hyoga-videoplayer");
 
         if (!hasHyoga) {
-          throw new Error('Hyoga custom elements are not available after script load');
+          throw new Error("Hyoga custom elements are not available after script load");
         }
 
         setReady(true);
       } catch (e) {
         if (!mounted) return;
-        setError(e instanceof Error ? e.message : 'Unknown script load error');
+        setError(e instanceof Error ? e.message : "Unknown script load error");
       }
     }
 
@@ -67,25 +81,22 @@ export default function HyogaRuntimePlayer({
     return () => {
       mounted = false;
     };
-  }, [hyogaScript, bowserScript]);
+  }, [hyogaScript, runtimeContext]);
 
   return (
     <>
-      {error ? (
-        <p style={{ color: '#b42318' }}>{error}</p>
-      ) : (
-        <p>{ready ? '' : 'Loading scripts...'}</p>
-      )}
+      {error ? <p style={{ color: "#b42318" }}>{error}</p> : !ready ? <p>Loading scripts...</p> : null}
       <div
         style={{
-          width: '100%',
+          width: "100%",
           maxWidth,
-          aspectRatio: '16/9',
-          border: '1px solid var(--ifm-color-emphasis-300)',
+          aspectRatio: "16/9",
+          border: "1px solid var(--ifm-color-emphasis-300)",
           borderRadius: 8,
-          overflow: 'hidden',
-          background: '#000',
-        }}>
+          overflow: "hidden",
+          background: "#000",
+        }}
+      >
         {ready && !error ? (
           <hyoga-player
             key={rerenderKey}
@@ -94,7 +105,6 @@ export default function HyogaRuntimePlayer({
             playerselector={config.playerselector}
             videolibrary={config.videolibrary}
             sourcetype={config.sourcetype}
-            playertype={valueOrUndefined(config.playertype)}
             adsystem={valueOrUndefined(config.adsystem)}
             locale={config.locale}
             globaleventsmanager={valueOrUndefined(config.globaleventsmanager)}
@@ -109,7 +119,8 @@ export default function HyogaRuntimePlayer({
             muted={config.muted}
             deferredadinit={valueOrUndefined(config.deferredadinit)}
             hideoverlay={valueOrUndefined(config.hideoverlay)}
-            style={{ display: 'block', width: '100%', height: '100%' }}>
+            style={{ display: "block", width: "100%", height: "100%" }}
+          >
             <hyoga-videoplayer hyogamanager={config.hyogamanager || config.id} />
           </hyoga-player>
         ) : null}

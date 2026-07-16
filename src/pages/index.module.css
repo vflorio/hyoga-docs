@@ -26,8 +26,8 @@
   padding: 2rem 0 1rem;
 }
 
-:root { 
-  --ifm-container-width-xl: 80%; 
+:root {
+  --ifm-container-width-xl: 80%;
   /*
   --ifm-container-width-xl: min(calc(100% - 128px), 1320px);
   */
