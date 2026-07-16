@@ -118,7 +118,7 @@ function SelectorBar({
   );
 }
 
-function CodeOutput({ config, fullEmbedCode, displayJson, onDisplayJsonChange, maxWidth = 900, minWidth = 300 }) {
+function CodeOutput({ config, fullEmbedCode, displayJson, onDisplayJsonChange }) {
   return (
     <Box>
       <FormControlLabel
@@ -127,7 +127,7 @@ function CodeOutput({ config, fullEmbedCode, displayJson, onDisplayJsonChange, m
         }
         label="JSON"
       />
-      <Box sx={{ mt: 1, maxWidth, minWidth, overflow: "auto" }}>
+      <Box sx={{ mt: 1, width: "100%", overflow: "auto" }}>
         {displayJson ? (
           <CodeBlock language="json">{JSON.stringify(config, null, 2)}</CodeBlock>
         ) : (
@@ -146,10 +146,9 @@ function EditorLayout({
   hyogaScript,
   runtimeContext,
   configFormProps,
-  maxWidth = 980,
 }) {
   return (
-    <Box sx={{ display: "flex", gap: 2, height: "80vh", minHeight: 500 }}>
+    <Box sx={{ display: "flex", gap: 2, minHeight: 320, maxWidth: "var(--ifm-container-width-xl)" }}>
       <Box
         sx={{
           display: "flex",
@@ -157,8 +156,7 @@ function EditorLayout({
           gap: 2,
           flexShrink: 0,
           minWidth: 0,
-          width: "50%",
-          maxWidth,
+          flex: 1,
           pt: 1,
         }}
       >
@@ -169,8 +167,6 @@ function EditorLayout({
             fullEmbedCode={fullEmbedCode}
             displayJson={displayJson}
             onDisplayJsonChange={onDisplayJsonChange}
-            maxWidth={maxWidth}
-            minWidth={300}
           />
         </Box>
       </Box>
@@ -184,15 +180,13 @@ function EditorLayout({
 
 function PreviewLayout({ config, fullEmbedCode, displayJson, onDisplayJsonChange, hyogaScript, runtimeContext }) {
   return (
-    <Stack sx={{ gap: 1, width: "100%" }}>
-      <Player config={config} hyogaScript={hyogaScript} runtimeContext={runtimeContext} maxWidth={960} />
+    <Stack sx={{ gap: 1, width: "100%", maxWidth: "var(--ifm-container-width-xl)" }}>
+      <Player config={config} hyogaScript={hyogaScript} runtimeContext={runtimeContext} />
       <CodeOutput
         config={config}
         fullEmbedCode={fullEmbedCode}
         displayJson={displayJson}
         onDisplayJsonChange={onDisplayJsonChange}
-        maxWidth={"100%"}
-        minWidth={0}
       />
     </Stack>
   );

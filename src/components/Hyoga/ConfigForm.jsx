@@ -29,7 +29,7 @@ export default function ConfigForm({
   showScriptInputs = true,
 }) {
   return (
-    <Box sx={{ display: "grid", gap: 2, maxWidth: 980 }}>
+    <Box sx={{ display: "grid", gap: 2, width: "100%", maxWidth: 480 }}>
       {showScriptInputs && (
         <Box sx={{ display: "grid", gap: 1.5 }}>
           <TextField

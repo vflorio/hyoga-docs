@@ -47,7 +47,7 @@ function applyRuntimeContext(runtimeContext) {
   });
 }
 
-export default function HyogaRuntimePlayer({ config, hyogaScript, runtimeContext, maxWidth = 960 }) {
+export default function HyogaRuntimePlayer({ config, hyogaScript, runtimeContext }) {
   const [ready, setReady] = useState(false);
   const [error, setError] = useState("");
 
@@ -98,7 +98,7 @@ export default function HyogaRuntimePlayer({ config, hyogaScript, runtimeContext
       <div
         style={{
           width: "100%",
-          maxWidth,
+          maxHeight: "60vh",
           aspectRatio: "16/9",
           border: "1px solid var(--ifm-color-emphasis-300)",
           borderRadius: 8,
