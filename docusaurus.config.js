@@ -20,14 +20,15 @@ const config = {
   },
 
   // Set the production url of your site here
-  url: "https://your-docusaurus-site.example.com",
+  url: "https://vflorio.github.io",
   // Set the /<baseUrl>/ pathname under which your site is served
   // For GitHub pages deployment, it is often '/<projectName>/'
-  baseUrl: "/",
+  baseUrl: "/hyoga-docs/",
+  trailingSlash: false,
 
   // GitHub pages deployment config.
   // If you aren't using GitHub pages, you don't need these.
-  organizationName: "discoveryinc-dtc", // Usually your GitHub org/user name.
+  organizationName: "vflorio", // Usually your GitHub org/user name.
   projectName: "hyoga-docs", // Usually your repo name.
 
   onBrokenLinks: "throw",
@@ -49,7 +50,7 @@ const config = {
           sidebarPath: "./sidebars.js",
           // Please change this to your repo.
           // Remove this to remove the "edit this page" links.
-          editUrl: "https://github.com/discoveryinc-dtc/hyoga-docs/tree/main/",
+          editUrl: "https://github.com/vflorio/hyoga-docs/tree/main/",
         },
         theme: {
           customCss: "./src/css/custom.css",
@@ -80,7 +81,7 @@ const config = {
             label: "Documentation",
           },
           {
-            href: "https://github.com/discoveryinc-dtc/Hyoga",
+            href: "https://github.com/vflorio/Hyoga",
             label: "GitHub",
             position: "right",
           },
@@ -99,7 +100,7 @@ const config = {
             ],
           },
         ],
-        copyright: `Copyright © ${new Date().getFullYear()} My Project, Inc. Built with Docusaurus.`,
+        copyright: `Copyright © ${new Date().getFullYear()} Hyoga Docs. Built with Docusaurus.`,
       },
       prism: {
         theme: prismThemes.github,

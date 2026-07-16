@@ -16,7 +16,6 @@ import {
   buildGlobalBootstrapCode,
   CONTENT_MODE_DEFINITIONS,
   createEnvironmentConfig,
-  DEFAULT_BOWSER_SCRIPT,
   DEFAULT_ENVIRONMENT_KEY,
   DEFAULT_HYOGA_SCRIPT,
   detectContentMode,
@@ -32,7 +31,6 @@ const PLAYER_ATTRIBUTE_ORDER = [
   "playerselector",
   "videolibrary",
   "sourcetype",
-  "playertype",
   "adsystem",
   "locale",
   "globaleventsmanager",
@@ -146,7 +144,6 @@ function EditorLayout({
   displayJson,
   onDisplayJsonChange,
   hyogaScript,
-  bowserScript,
   runtimeContext,
   configFormProps,
   maxWidth = 980,
@@ -165,7 +162,7 @@ function EditorLayout({
           pt: 1,
         }}
       >
-        <Player config={config} hyogaScript={hyogaScript} bowserScript={bowserScript} runtimeContext={runtimeContext} />
+        <Player config={config} hyogaScript={hyogaScript} runtimeContext={runtimeContext} />
         <Box sx={{ overflow: "auto", flexShrink: 1, minHeight: 0 }}>
           <CodeOutput
             config={config}
@@ -185,24 +182,10 @@ function EditorLayout({
   );
 }
 
-function PreviewLayout({
-  config,
-  fullEmbedCode,
-  displayJson,
-  onDisplayJsonChange,
-  hyogaScript,
-  bowserScript,
-  runtimeContext,
-}) {
+function PreviewLayout({ config, fullEmbedCode, displayJson, onDisplayJsonChange, hyogaScript, runtimeContext }) {
   return (
     <Stack sx={{ gap: 1, width: "100%" }}>
-      <Player
-        config={config}
-        hyogaScript={hyogaScript}
-        bowserScript={bowserScript}
-        runtimeContext={runtimeContext}
-        maxWidth={"100%"}
-      />
+      <Player config={config} hyogaScript={hyogaScript} runtimeContext={runtimeContext} maxWidth={"100%"} />
       <CodeOutput
         config={config}
         fullEmbedCode={fullEmbedCode}
@@ -221,7 +204,7 @@ const darkTheme = createTheme({
   },
 });
 
-export default function HyogaExperience({
+export default function HyogaPlayer({
   initialVariantKey = "autoplayVideo",
   initialEnvironmentKey = DEFAULT_ENVIRONMENT_KEY,
   variantKeys = ["autoplayVideo"],
@@ -245,7 +228,6 @@ export default function HyogaExperience({
   const [contentMode, setContentMode] = useState(() => detectContentMode(config));
 
   const [hyogaScript, setHyogaScript] = useState(DEFAULT_HYOGA_SCRIPT);
-  const [bowserScript, setBowserScript] = useState(DEFAULT_BOWSER_SCRIPT);
 
   const selectedEnvironment = environments.find((env) => env.key === selectedEnvironmentKey);
 
@@ -293,7 +275,6 @@ export default function HyogaExperience({
     displayJson,
     onDisplayJsonChange: setDisplayJson,
     hyogaScript,
-    bowserScript,
     runtimeContext,
   };
 
@@ -323,8 +304,6 @@ export default function HyogaExperience({
               onConfigChange: setConfig,
               hyogaScript,
               onHyogaScriptChange: setHyogaScript,
-              bowserScript,
-              onBowserScriptChange: setBowserScript,
               showScriptInputs,
             }}
           />

@@ -1,5 +1,4 @@
 export const DEFAULT_HYOGA_SCRIPT = "https://cdn.hyogaplayer.com/hyoga-web.min.js";
-export const DEFAULT_BOWSER_SCRIPT = "https://cdnjs.cloudflare.com/ajax/libs/bowser/2.11.0/bundled.min.js";
 
 // Necessario per simulare consenso cookie accettato
 const DEFAULT_TCF_RESPONSE = {
@@ -243,8 +242,62 @@ export const GLOBAL_MODULE_DEFINITIONS = {
   },
 };
 
+/**
+ * Field metadata: defines input type and allowed values for each attribute.
+ * - type: 'select' renders a dropdown, 'text' renders a free-text input
+ * - options: array of allowed values (only for 'select' fields)
+ * - required: whether the attribute is required
+ * - description: short description for tooltips/docs
+ */
+export const FIELD_META = {
+  // Identity
+  id: { type: "text", required: true, description: "Unique Hyoga manager identifier" },
+  uid: { type: "text", required: true, description: "Player UID, used as key in the EventsManager" },
+  playerselector: { type: "text", required: false, description: "CSS selector for the inner video element" },
+  hyogamanager: { type: "text", required: false, description: "Hyoga manager reference" },
+  globaleventsmanager: { type: "text", required: true, description: "Format <uid>@<globalVarName>" },
+  // Runtime
+  videolibrary: {
+    type: "select",
+    required: false,
+    options: ["videojs", "dashjs", "hlsjs"],
+    description: "Underlying player engine",
+  },
+  sourcetype: { type: "select", required: false, options: ["sonic", "direct"], description: "Content source type" },
+  locale: { type: "text", required: false, description: "Language code (2 letters)" },
+  realm: { type: "text", required: true, description: "Sonic realm" },
+  endpoint: { type: "text", required: true, description: "Sonic API endpoint URL" },
+  // Source
+  assetid: { type: "text", required: true, description: "Sonic video/channel ID" },
+  playbacktype: { type: "select", required: false, options: ["video", "channel"], description: "Playback type" },
+  sourceparams: { type: "text", required: false, description: "Custom query params appended to the playback URL" },
+  // Behavior
+  autoplay: { type: "select", required: false, options: ["true", "false"], description: "Auto-start playback" },
+  muted: { type: "select", required: false, options: ["true", "false"], description: "Start muted" },
+  hideoverlay: {
+    type: "select",
+    required: false,
+    options: ["true", "false"],
+    description: "Hide the default Hyoga overlay",
+  },
+  disableobserver: {
+    type: "select",
+    required: false,
+    options: ["true", "false"],
+    description: "Disable IntersectionObserver-based pause/resume",
+  },
+  // Ads
+  adsystem: { type: "select", required: false, options: ["", "fw", "ima"], description: "Ad system" },
+  deferredadinit: {
+    type: "select",
+    required: false,
+    options: ["true", "false"],
+    description: "Defer ad request until user interaction",
+  },
+};
+
 export const CONFIG_FIELDS_BY_DOMAIN = {
-  identity: ["id", "uid", "playerselector", "playertype", "hyogamanager", "globaleventsmanager"],
+  identity: ["id", "uid", "playerselector", "hyogamanager", "globaleventsmanager"],
   runtime: ["videolibrary", "sourcetype", "locale", "realm", "endpoint"],
   source: ["assetid", "playbacktype", "sourceparams"],
   behavior: ["autoplay", "muted", "hideoverlay", "disableobserver"],
@@ -266,7 +319,6 @@ export const BASE_CONFIG_BY_DOMAIN = {
     id: "hyogaManager-player-uuid-0",
     uid: "player-uuid-0",
     playerselector: "hyogaPlayer-player-uuid-0",
-    playertype: "videoPlayer",
     hyogamanager: "hyogaManager-player-uuid-0",
     globaleventsmanager: "uuid-0@lomaEventsManager",
   },

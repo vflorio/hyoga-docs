@@ -1,7 +1,8 @@
 import Box from "@mui/material/Box";
+import MenuItem from "@mui/material/MenuItem";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
-import { CONFIG_FIELDS_BY_DOMAIN, DOMAIN_LABELS } from "./configModel";
+import { CONFIG_FIELDS_BY_DOMAIN, DOMAIN_LABELS, FIELD_META } from "./configModel";
 
 const UID_DERIVED_FIELDS = {
   id: (uid) => `hyogaManager-${uid}`,
@@ -25,8 +26,6 @@ export default function ConfigForm({
   onConfigChange,
   hyogaScript,
   onHyogaScriptChange,
-  bowserScript,
-  onBowserScriptChange,
   showScriptInputs = true,
 }) {
   return (
@@ -39,13 +38,6 @@ export default function ConfigForm({
             fullWidth
             value={hyogaScript}
             onChange={(e) => onHyogaScriptChange(e.target.value)}
-          />
-          <TextField
-            label="Bowser script URL"
-            size="small"
-            fullWidth
-            value={bowserScript}
-            onChange={(e) => onBowserScriptChange(e.target.value)}
           />
         </Box>
       )}
@@ -68,26 +60,56 @@ export default function ConfigForm({
             </Typography>
 
             <Box sx={{ display: "grid", gap: 1, gridTemplateColumns: "1fr 1fr" }}>
-              {CONFIG_FIELDS_BY_DOMAIN[domain].map((fieldKey) => (
-                <TextField
-                  key={fieldKey}
-                  label={fieldKey}
-                  size="small"
-                  value={config[fieldKey] ?? ""}
-                  sx={{ mt: 0.5 }}
-                  disabled={domain === "identity" && fieldKey in UID_DERIVED_FIELDS}
-                  onChange={(e) => {
-                    if (fieldKey === "uid") {
-                      handleUidChange(e.target.value, onConfigChange);
-                    } else {
-                      onConfigChange((prev) => ({
-                        ...prev,
-                        [fieldKey]: e.target.value,
-                      }));
-                    }
-                  }}
-                />
-              ))}
+              {CONFIG_FIELDS_BY_DOMAIN[domain].map((fieldKey) => {
+                const meta = FIELD_META[fieldKey];
+                const isDisabled = domain === "identity" && fieldKey in UID_DERIVED_FIELDS;
+                const value = config[fieldKey] ?? "";
+                const handleChange = (e) => {
+                  if (fieldKey === "uid") {
+                    handleUidChange(e.target.value, onConfigChange);
+                  } else {
+                    onConfigChange((prev) => ({
+                      ...prev,
+                      [fieldKey]: e.target.value,
+                    }));
+                  }
+                };
+
+                if (meta?.type === "select" && meta.options) {
+                  return (
+                    <TextField
+                      key={fieldKey}
+                      label={fieldKey}
+                      size="small"
+                      select
+                      value={value}
+                      sx={{ mt: 0.5 }}
+                      disabled={isDisabled}
+                      helperText={meta.description}
+                      onChange={handleChange}
+                    >
+                      {meta.options.map((opt) => (
+                        <MenuItem key={opt} value={opt}>
+                          {opt || <em>none</em>}
+                        </MenuItem>
+                      ))}
+                    </TextField>
+                  );
+                }
+
+                return (
+                  <TextField
+                    key={fieldKey}
+                    label={fieldKey}
+                    size="small"
+                    value={value}
+                    sx={{ mt: 0.5 }}
+                    disabled={isDisabled}
+                    helperText={meta?.description}
+                    onChange={handleChange}
+                  />
+                );
+              })}
             </Box>
           </Box>
         ))}

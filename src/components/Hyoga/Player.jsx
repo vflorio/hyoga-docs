@@ -41,7 +41,7 @@ function applyRuntimeContext(runtimeContext) {
   });
 }
 
-export default function HyogaRuntimePlayer({ config, hyogaScript, bowserScript, runtimeContext, maxWidth = 960 }) {
+export default function HyogaRuntimePlayer({ config, hyogaScript, runtimeContext, maxWidth = 960 }) {
   const [ready, setReady] = useState(false);
   const [error, setError] = useState("");
 
@@ -56,7 +56,6 @@ export default function HyogaRuntimePlayer({ config, hyogaScript, bowserScript, 
 
       try {
         applyRuntimeContext(runtimeContext);
-        await loadScript(bowserScript);
         await loadScript(hyogaScript);
         if (!mounted) return;
 
@@ -82,7 +81,7 @@ export default function HyogaRuntimePlayer({ config, hyogaScript, bowserScript, 
     return () => {
       mounted = false;
     };
-  }, [hyogaScript, bowserScript, runtimeContext]);
+  }, [hyogaScript, runtimeContext]);
 
   return (
     <>
@@ -106,7 +105,6 @@ export default function HyogaRuntimePlayer({ config, hyogaScript, bowserScript, 
             playerselector={config.playerselector}
             videolibrary={config.videolibrary}
             sourcetype={config.sourcetype}
-            playertype={valueOrUndefined(config.playertype)}
             adsystem={valueOrUndefined(config.adsystem)}
             locale={config.locale}
             globaleventsmanager={valueOrUndefined(config.globaleventsmanager)}

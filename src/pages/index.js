@@ -1,7 +1,6 @@
 import Link from "@docusaurus/Link";
 import useDocusaurusContext from "@docusaurus/useDocusaurusContext";
-import HomepageFeatures from "@site/src/components/HomepageFeatures";
-import HyogaExperience from "@site/src/components/HyogaExperience";
+import HyogaPlayer from "@site/src/components/HyogaPlayer";
 import Heading from "@theme/Heading";
 import Layout from "@theme/Layout";
 import clsx from "clsx";
@@ -34,15 +33,14 @@ export default function Home() {
       <main>
         <section className={styles.playerSection}>
           <div className="container">
-            <HyogaExperience
-              initialVariantKey="autoplayVideo"
+            <HyogaPlayer
               initialEnvironmentKey="auroraProd"
+              environmentKeys={["auroraProd", "auroraStage"]}
+              initialVariantKey="autoplayVideo"
               variantKeys={[]}
-              environmentKeys={[]}
             />
           </div>
         </section>
-        <HomepageFeatures />
       </main>
     </Layout>
   );
