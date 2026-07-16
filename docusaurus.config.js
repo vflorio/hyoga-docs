@@ -81,7 +81,7 @@ const config = {
             label: "Documentation",
           },
           {
-            href: "https://github.com/vflorio/Hyoga",
+            href: "https://github.com/discoveryinc-dtc/Hyoga",
             label: "GitHub",
             position: "right",
           },
