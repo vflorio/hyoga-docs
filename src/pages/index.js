@@ -34,13 +34,9 @@ function HomepageHeader() {
             to="/docs/introduction"
             variant="contained"
             size="large"
+            color="inherit"
             sx={{
-              bgcolor: "var(--ifm-button-background-color)",
               color: "var(--ifm-button-color)",
-              "&:hover": {
-                bgcolor: "var(--ifm-button-background-color)",
-                opacity: 0.9,
-              },
             }}
           >
             Open Docs

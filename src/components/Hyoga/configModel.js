@@ -1,4 +1,4 @@
-export const DEFAULT_HYOGA_SCRIPT = "https://cdn.hyogaplayer.com/hyoga-web.min.js";
+export const DEFAULT_HYOGA_SCRIPT = "http://localhost:8080/hyoga-web.min.js"; //"https://cdn.hyogaplayer.com/hyoga-web.min.js";
 
 export const EXTERNAL_DEPENDENCIES = [
   '<script src="https://cdnjs.cloudflare.com/ajax/libs/bowser/2.11.0/bundled.min.js" integrity="sha512-hsF/cpBvi/vjCP4Ps/MrPUFk6l4BqcGbzVUhqjJdX2SmAri1Oj8FBUGCvBiKHYd6gg3vLsV16CtIRNOvK5X4lQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>',
@@ -264,10 +264,18 @@ export const FIELD_META = {
   videolibrary: {
     type: "select",
     required: false,
-    options: ["videojs", "dashjs", "hlsjs"],
+    options: ["videojs", "dashjs", "hlsjs", "avcontrol"],
     description: "Underlying player engine",
   },
   sourcetype: { type: "select", required: false, options: ["sonic", "direct"], description: "Content source type" },
+  src: { type: "text", required: false, description: "Direct playback URL (used when sourcetype=direct)" },
+  srctype: {
+    type: "select",
+    required: false,
+    options: ["", "hls", "dash"],
+    description: "Stream format for direct source (hls, dash, or empty for MP4)",
+  },
+  title: { type: "text", required: false, description: "Video title (used in direct mode)" },
   locale: { type: "text", required: false, description: "Language code (2 letters)" },
   realm: { type: "text", required: true, description: "Sonic realm" },
   endpoint: { type: "text", required: true, description: "Sonic API endpoint URL" },
@@ -283,6 +291,12 @@ export const FIELD_META = {
     required: false,
     options: ["true", "false"],
     description: "Hide the default Hyoga overlay",
+  },
+  controls: {
+    type: "select",
+    required: false,
+    options: ["true", "false"],
+    description: "Show native video controls",
   },
   disableobserver: {
     type: "select",
@@ -303,8 +317,8 @@ export const FIELD_META = {
 export const CONFIG_FIELDS_BY_DOMAIN = {
   identity: ["id", "uid", "playerselector", "hyogamanager", "globaleventsmanager"],
   runtime: ["videolibrary", "sourcetype", "locale", "realm", "endpoint"],
-  source: ["assetid", "playbacktype", "sourceparams"],
-  behavior: ["autoplay", "muted", "hideoverlay", "disableobserver"],
+  source: ["assetid", "playbacktype", "sourceparams", "src", "srctype", "title"],
+  behavior: ["autoplay", "muted", "controls", "hideoverlay", "disableobserver"],
   ads: [
     //  "adsystem", "deferredadinit"
   ],
@@ -337,10 +351,14 @@ export const BASE_CONFIG_BY_DOMAIN = {
     playbacktype: "video",
     assetid: "18322",
     sourceparams: "",
+    src: "",
+    srctype: "",
+    title: "",
   },
   behavior: {
     autoplay: "true",
     muted: "true",
+    controls: "true",
     hideoverlay: "false",
     disableobserver: "false",
   },
@@ -451,21 +469,96 @@ export const VARIANT_DEFINITIONS = {
     globalModules: ["lomaEventsManager", "analyticsContext", "gtag"],
     domains: {},
   },
+  localSourceMp4: {
+    label: "Local Source — MP4",
+    description: "Direct MP4 progressive playback (no Stone)",
+    globalModules: ["lomaEventsManager"],
+    domains: {
+      runtime: {
+        sourcetype: "direct",
+        endpoint: "",
+        realm: "",
+      },
+      source: {
+        assetid: "",
+        playbacktype: "",
+        sourceparams: "",
+        src: "https://test-videos.co.uk/vids/bigbuckbunny/mp4/h264/1080/Big_Buck_Bunny_1080_10s_1MB.mp4",
+        srctype: "",
+        title: "MP4 Test Video",
+      },
+      behavior: {
+        autoplay: "true",
+        muted: "false",
+      },
+    },
+  },
+  localSourceHls: {
+    label: "Local Source — HLS",
+    description: "Direct HLS playback (no Stone)",
+    globalModules: ["lomaEventsManager"],
+    domains: {
+      runtime: {
+        sourcetype: "direct",
+        endpoint: "",
+        realm: "",
+      },
+      source: {
+        assetid: "",
+        playbacktype: "",
+        sourceparams: "",
+        src: "https://hls-harbor-livepush.akamaized.net/live_cdn/nsqIStpj8PaG-Ev/emcQJ0pGpremocy/index.m3u8",
+        srctype: "hls",
+        title: "HLS Test Stream",
+      },
+      behavior: {
+        autoplay: "true",
+        muted: "false",
+      },
+    },
+  },
+  localSourceDash: {
+    label: "Local Source — DASH",
+    description: "Direct DASH playback (no Stone)",
+    globalModules: ["lomaEventsManager"],
+    domains: {
+      runtime: {
+        sourcetype: "direct",
+        endpoint: "",
+        realm: "",
+      },
+      source: {
+        assetid: "",
+        playbacktype: "",
+        sourceparams: "",
+        src: "https://storage.googleapis.com/shaka-demo-assets/tos-ttml/dash.mpd",
+        srctype: "dash",
+        title: "DASH Test Stream",
+      },
+      behavior: {
+        autoplay: "true",
+        muted: "false",
+      },
+    },
+  },
 };
 
 export const CONTENT_MODE_DEFINITIONS = {
   video: {
-    label: "Video",
+    label: "Sonic - Video",
     domains: {
       source: {
         playbacktype: "video",
         assetid: "18322",
         sourceparams: "",
+        src: "",
+        srctype: "",
+        title: "",
       },
     },
   },
   channel: {
-    label: "Channel",
+    label: "Sonic - Channel",
     domains: {
       runtime: {
         sourcetype: "sonic",
@@ -476,6 +569,63 @@ export const CONTENT_MODE_DEFINITIONS = {
         playbacktype: "channel",
         assetid: "6",
         sourceparams: "aws.manifestsettings=start:1740997225",
+        src: "",
+        srctype: "",
+        title: "",
+      },
+    },
+  },
+  localSourceMp4: {
+    label: "Direct — MP4",
+    domains: {
+      runtime: {
+        sourcetype: "direct",
+        endpoint: "",
+        realm: "",
+      },
+      source: {
+        playbacktype: "",
+        assetid: "",
+        sourceparams: "",
+        src: "https://test-videos.co.uk/vids/bigbuckbunny/mp4/h264/1080/Big_Buck_Bunny_1080_10s_1MB.mp4",
+        srctype: "",
+        title: "MP4 Test Video",
+      },
+    },
+  },
+  localSourceHls: {
+    label: "Direct — HLS",
+    domains: {
+      runtime: {
+        sourcetype: "direct",
+        endpoint: "",
+        realm: "",
+      },
+      source: {
+        playbacktype: "",
+        assetid: "",
+        sourceparams: "",
+        src: "https://hls-harbor-livepush.akamaized.net/live_cdn/nsqIStpj8PaG-Ev/emcQJ0pGpremocy/index.m3u8",
+        srctype: "hls",
+        title: "HLS Test Stream",
+      },
+    },
+  },
+  localSourceDash: {
+    label: "Direct — DASH",
+    domains: {
+      runtime: {
+        sourcetype: "direct",
+        endpoint: "",
+        realm: "",
+      },
+      source: {
+        playbacktype: "",
+        assetid: "",
+        sourceparams: "",
+        src: "https://storage.googleapis.com/shaka-demo-assets/tos-ttml/dash.mpd",
+        srctype: "dash",
+        title: "DASH Test Stream",
       },
     },
   },
@@ -565,6 +715,11 @@ export function detectEnvironment(config) {
 }
 
 export function detectContentMode(config) {
+  if (config?.sourcetype === "direct") {
+    if (config?.srctype === "hls") return "localSourceHls";
+    if (config?.srctype === "dash") return "localSourceDash";
+    return "localSourceMp4";
+  }
   return config?.playbacktype === "channel" ? "channel" : "video";
 }
 

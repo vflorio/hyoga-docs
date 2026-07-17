@@ -52,8 +52,6 @@ Remove all subscriptions for a given player.
 | `playerId` | `string` | The player UID |
 | `eventCategories` | `string[]` | Categories to clean up, e.g. `['video', 'loma']` |
 
----
-
 ### Configuration
 
 The `globaleventsmanager` attribute on the `<hyoga-player>` element defines the binding:
@@ -64,8 +62,6 @@ The `globaleventsmanager` attribute on the `<hyoga-player>` element defines the 
 
 This creates `window.lomaEventsManager` (if not already existing) and registers the player under id `player001`.
 
----
-
 ### Subscribable Events (category: `video`)
 
 The player publishes all native video events and ad lifecycle events:
@@ -75,8 +71,6 @@ The player publishes all native video events and ad lifecycle events:
 **Player events:** `dispose`, `sourceset`, `play-request`, `sourceloaded`
 
 **Ad events:** `ads-load`, `ads-request-init`, `ads-request-success`, `ads-request-error`, `ads-has-preroll`, `ads-no-preroll`, `ads-playprerolls`, `ads-endedprerolls`, `ads-playmidrolls`, `ads-endedmidrolls`, `ads-playpostrolls`, `ads-endedpostrolls`, `ads-pod-started`, `ads-pod-ended`, `ads-ad-started`, `ads-first-quartile`, `ads-midpoint`, `ads-third-quartile`, `ads-ad-ended`, `ads-play`, `ads-pause`, `ads-timeupdate`, `ads-click`, `ads-error`
-
----
 
 ### Application Events (category: `loma`)
 
@@ -92,8 +86,8 @@ Supported actions:
 
 | Action | Data | Description |
 |--------|------|-------------|
-| `play` | — | Resume or start playback |
-| `pause` | — | Pause playback |
+| `play` | - | Resume or start playback |
+| `pause` | - | Pause playback |
 | `ffw` | `{ timeDelta: number, forcePlay?: boolean }` | Fast-forward by `timeDelta` seconds |
 | `rwd` | `{ timeDelta: number, forcePlay?: boolean }` | Rewind by `timeDelta` seconds |
 | `restart` | `{ forcePlay?: boolean }` | Restart from beginning |
@@ -120,8 +114,6 @@ lomaEventsManager.pub("loma", uid, "loma-update-content", {
 | `assetId` | `string` | Sonic asset/video ID |
 | `forcePlay` | `boolean` | (optional) Auto-play after loading |
 
----
-
 ### Example: Subscribe to player events
 
 ```js
@@ -140,8 +132,6 @@ lomaEventsManager.sub("video", "player001", ["sourceloaded"], (event, data) => {
 `window.lomaEventsManager` is only available after a `<hyoga-player>` element with a [`globaleventsmanager`](guides/host-application-integration#core-attributes) attribute has been connected to the DOM. Any attempt to use it before that will result in `undefined`.
 :::
 
----
-
 ## `<hyoga-player>` Attributes
 
 The `<hyoga-player>` [Web Component](https://developer.mozilla.org/en-US/docs/Web/API/Web_components) accepts the following attributes to configure its behavior. For full integration examples and lifecycle details, see the [Integration guide](guides/host-application-integration#dom-setup).
@@ -150,9 +140,9 @@ The `<hyoga-player>` [Web Component](https://developer.mozilla.org/en-US/docs/We
 
 | Attribute | Required | Default | Description |
 |-----------|----------|---------|-------------|
-| `id` | yes | — | Unique Hyoga manager identifier |
-| `uid` | yes | — | Player UID, used as addressing key in all `pub`/`sub` calls |
-| [`globaleventsmanager`](guides/host-application-integration#core-attributes) | yes | — | Format `<uid>@<globalVarName>` — creates/reuses `window[globalVarName]` |
+| `id` | yes | - | Unique Hyoga manager identifier |
+| `uid` | yes | - | Player UID, used as addressing key in all `pub`/`sub` calls |
+| [`globaleventsmanager`](guides/host-application-integration#core-attributes) | yes | - | Format `<uid>@<globalVarName>` - creates/reuses `window[globalVarName]` |
 | `playerselector` | no | `hyogaPlayer-<uid>` | CSS selector for the inner video element |
 | [`videolibrary`](guides/host-application-integration#core-attributes) | no | `videojs` | Player engine: `dashjs`, `hlsjs`, or `videojs` |
 | [`sourcetype`](guides/host-application-integration#core-attributes) | no | `sonic` | Content source: `sonic` or `direct` |
@@ -163,39 +153,39 @@ The `<hyoga-player>` [Web Component](https://developer.mozilla.org/en-US/docs/We
 
 | Attribute | Required | Default | Description |
 |-----------|----------|---------|-------------|
-| `endpoint` | yes | — | Sonic API endpoint URL |
-| `realm` | yes | — | Sonic realm |
-| `assetid` | yes | — | Sonic video/channel ID |
+| `endpoint` | yes | - | Sonic API endpoint URL |
+| `realm` | yes | - | Sonic realm |
+| `assetid` | yes | - | Sonic video/channel ID |
 | `clientid` | no | `WEB:UNKNOWN:wbdatv:2.1.9` | Client identifier passed to Sonic |
 | `discoparams` | no | `''` | Extra discovery parameters passed to Sonic |
-| `token` | no | — | Initial authentication token |
+| `token` | no | - | Initial authentication token |
 
 ### Direct Source
 
 
 | Attribute | Required | Default | Description |
 |-----------|----------|---------|-------------|
-| `src` | yes | — | Direct video source URL |
-| `srctype` | yes | — | Stream type (`dash`, `hls`) |
-| `title` | no | — | Video title |
-| `description` | no | — | Video description |
-| `poster` | no | — | Poster image URL |
+| `src` | yes | - | Direct video source URL |
+| `srctype` | yes | - | Stream type (`dash`, `hls`) |
+| `title` | no | - | Video title |
+| `description` | no | - | Video description |
+| `poster` | no | - | Poster image URL |
 
 ### Playback
 
 | Attribute | Required | Default | Description |
 |-----------|----------|---------|-------------|
-| `streamtype` | no | — | Stream format hint (`dash`, `hls`); auto-detected from `videolibrary` if omitted |
+| `streamtype` | no | - | Stream format hint (`dash`, `hls`); auto-detected from `videolibrary` if omitted |
 | `autoplay` | no | `false` | Auto-start playback |
 | `muted` | no | `false` | Start muted |
 | `controls` | no | `true` | Show native Hyoga controls |
-| `position` | no | — | Start position in milliseconds |
-| `startover` | no | — | Enable start-over for live streams (HbbTV only) |
-| `sourceparams` | no | — | Custom query params appended to the playback URL (HbbTV only) |
+| `position` | no | - | Start position in milliseconds |
+| `startover` | no | - | Enable start-over for live streams (HbbTV only) |
+| `sourceparams` | no | - | Custom query params appended to the playback URL (HbbTV only) |
 | `disableobserver` | no | `false` | Disable IntersectionObserver-based pause/resume |
 | `disablepip` | no | `false` | Disable Picture-in-Picture |
-| `representationsMax` | no | — | Maximum number of video representations |
-| `representationsMin` | no | — | Minimum number of video representations |
+| `representationsMax` | no | - | Maximum number of video representations |
+| `representationsMin` | no | - | Minimum number of video representations |
 
 ### UI
 
@@ -209,11 +199,11 @@ The `<hyoga-player>` [Web Component](https://developer.mozilla.org/en-US/docs/We
 | Attribute | Required | Default | Description |
 |-----------|----------|---------|-------------|
 | `adsystem` | no | `fw` | Ad system: `fw` (FreeWheel) or `ima` (Google IMA) |
-| `adtagurl` | no | — | Ad tag URL (for `adsystem="ima"`) |
+| `adtagurl` | no | - | Ad tag URL (for `adsystem="ima"`) |
 | `deferredadinit` | no | `false` | Defer ad request until user interaction |
 
 ### Content Filtering
 
 | Attribute | Required | Default | Description |
 |-----------|----------|---------|-------------|
-| `maxagerating` | no | — | Maximum age rating for content filtering |
+| `maxagerating` | no | - | Maximum age rating for content filtering |

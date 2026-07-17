@@ -9,29 +9,28 @@ instead of the HTML5 `<video>` element combined with dash.js or hls.js.
 
 ## Architecture Overview
 
-Hyoga's player architecture is layered:
+```mermaid
+graph TD
+    A[Hyoga Common Core<br/><small>GenericContentPlayer / EventsManager / Trackers</small>] --> B[hyoga-web.min.js<br/><b>Web Bundle</b>]
+    A --> C[hyoga-hbbtv.min.js<br/><b>HbbTV Bundle</b>]
 
-```
-┌─────────────────────────────────────────────┐
-│  VideoPlayerComponent (Web Component)       │
-│  ┌───────────────────────────────────────┐  │
-│  │  GenericContentPlayer (base class)    │  │
-│  │  ┌─────────────────────────────────┐  │  │
-│  │  │  Player Core (library-specific) │  │  │
-│  │  │  - DashjsContentPlayer          │  │  │
-│  │  │  - HlsjsContentPlayer           │  │  │
-│  │  │  - VideojsContentPlayer         │  │  │
-│  │  │  - AvControlContentPlayer (NEW) │  │  │
-│  │  └─────────────────────────────────┘  │  │
-│  └───────────────────────────────────────┘  │
-└─────────────────────────────────────────────┘
+    B --> D[Video.js]
+    D --> G[videojs-freewheel]
+
+    C --> E[hls.js]
+    E --> H[hlsjs-freewheel]
+
+    C --> F[dash.js]
+    F --> I[dashjs-freewheel]
+
+    C --> J[OIPF A/V Control]
 ```
 
 Each "Player Core" extends `GenericContentPlayer` and implements the playback lifecycle by wrapping a specific underlying player technology. 
 Your new `AvControlContentPlayer` will wrap the OIPF A/V Control embedded object.
 
 
-## Step 1 — Create the Player Core File
+## Step 1 - Create the Player Core File
 
 Create `src/avcontrol/player-core.js`:
 
@@ -157,7 +156,7 @@ export default {
 };
 ```
 
-## Step 2 — Register with the HbbTV Player Component
+## Step 2 - Register with the HbbTV Player Component
 
 Edit `src/common/components/hbbtv-playercomponent.js` to include the new core:
 
@@ -182,7 +181,7 @@ class HbbTVVideoPlayerComponent extends VideoPlayerComponent {
 export { HbbTVVideoPlayerComponent };
 ```
 
-## Step 3 — Update the VideoPlayerComponent Template
+## Step 3 - Update the VideoPlayerComponent Template
 
 The `VideoPlayerComponent` base class generates the video element HTML based on `videoLibraryType`. Add a case for `avcontrol` in `playercomponent.js`:
 
@@ -199,7 +198,7 @@ case 'avcontrol':
     break;
 ```
 
-## Step 4 — Handle A/V Control Lifecycle Events
+## Step 4 - Handle A/V Control Lifecycle Events
 
 The A/V Control object emits state changes via `PlayStateChange` events. Map them to Hyoga's normalized event system:
 
@@ -244,57 +243,35 @@ this._bindAvEvents = () => {
 };
 ```
 
-## Step 5 — Setting the Source (DRM-protected or clear)
+## Step 5 - Setting the Source  
 
 ```js
 this.setPlayerSource = ({ playbackUrl, keySystems = undefined }) => {
     // Stop current playback before switching source
     this.avObject.stop();
-
-    if (keySystems && keySystems.drmEnabled) {
-        // For OIPF DRM, use the DRM manager agent
-        const drmAgent = document.getElementById('oipfDrmAgent') 
-            || this._createDrmAgent();
-        
-        const drmMessage = this._buildDrmMessage(keySystems);
-        drmAgent.sendDrmMessage(keySystems.drmType, drmMessage);
-        
-        drmAgent.onDRMRightsError = (errorState, contentID, drmSystemID) => {
-            this.player.generate('error', { errorState, contentID, drmSystemID });
-        };
-    }
-
     // Set channel/content data and play
     this.avObject.data = playbackUrl;
     this.avObject.play(1);
 };
-
-this._createDrmAgent = () => {
-    const agent = document.createElement('object');
-    agent.id = 'oipfDrmAgent';
-    agent.type = 'application/oipfDrmAgent';
-    agent.style.display = 'none';
-    document.body.appendChild(agent);
-    return agent;
-};
-
-this._buildDrmMessage = (keySystems) => {
-    // Build XML DRM message per OIPF DAE spec
-    // Customize based on your DRM provider (PlayReady, Marlin, etc.)
-    const scheme = keySystems.schemes.playready || keySystems.schemes.widevine;
-    return `<?xml version="1.0" encoding="utf-8"?>
-<PlayReadyInitiator xmlns="http://schemas.microsoft.com/DRM/2007/03/protocols/">
-  <LicenseAcquisition>
-    <Header><WRMHEADER></WRMHEADER></Header>
-    <CustomData>${scheme.licenseUrl}</CustomData>
-  </LicenseAcquisition>
-</PlayReadyInitiator>`;
-};
 ```
 
-## Step 6 — Usage in Host Application
+## Step 6 - Testing with a Local Source (Direct Mode)
 
-Once the new core is registered, use it like any other Hyoga videolibrary:
+When `sourcetype="direct"` is set on the `<hyoga-player>` element, the player uses the `src` attribute as the playback URL and `srctype` to identify the stream format.
+
+This is extremely useful for testing the new A/V Control core on a real TV set without needing a Stone backend — you can serve an MP4, DASH manifest, or HLS playlist from a local HTTP server.
+
+### Supported `srctype` values
+
+| `srctype` | Format | Example |
+|-----------|--------|---------|
+| `hls`     | HLS (.m3u8) | `https://hls-harbor-livepush.akamaized.net/live_cdn/nsqIStpj8PaG-Ev/emcQJ0pGpremocy/index.m3u8` |
+| `dash`    | DASH (.mpd) | `https://storage.googleapis.com/shaka-demo-assets/tos-ttml/dash.mpd` |
+| _(empty)_ | MP4 (progressive) | `https://test-videos.co.uk/vids/bigbuckbunny/mp4/h264/1080/Big_Buck_Bunny_1080_10s_1MB.mp4` |
+
+### Example: Local MP4 on HbbTV
+
+Serve a test file from your development machine (e.g. with `npx http-server ./media -p 8080`) and point the player to it:
 
 ```html
 <hyoga-player
@@ -302,47 +279,41 @@ Once the new core is registered, use it like any other Hyoga videolibrary:
   uid="player-001"
   playerselector="hyogaPlayer-001"
   videolibrary="avcontrol"
-  sourcetype="sonic"
-  endpoint="https://public.aurora.enhanced.live"
-  realm="it"
-  assetid="12345"
-  playbacktype="channel"
+  sourcetype="direct"
+  src="https://test-videos.co.uk/vids/bigbuckbunny/mp4/h264/1080/Big_Buck_Bunny_1080_10s_1MB.mp4"
+  srctype="dash"
   autoplay="true"
 >
   <hyoga-videoplayer hyogamanager="hyogaManager-player-001" />
 </hyoga-player>
 ```
 
-## Key Differences from dash.js/hls.js Cores
+:::tip
+For progressive MP4 playback via A/V Control you can omit `srctype` — the object `type="video/mp4"` in the template is sufficient. 
+For DASH content on HbbTV, set `srctype="dash"` so that the player component generates the correct DOM element and passes the manifest URL.
+:::
 
-| Aspect | dash.js / hls.js Core | A/V Control Core |
-|--------|----------------------|------------------|
-| `this.player` | dash.js `MediaPlayer` / hls.js instance | Custom facade over `<object>` |
-| Source loading | `attachSource()` / `loadSource()` | `avObject.data = url; avObject.play(1)` |
-| DRM | EME via `setProtectionData()` | OIPF DRM Agent (`sendDrmMessage`) |
-| Events | Library-specific events | `onPlayStateChange` + synthetic dispatch |
-| Seeking | `player.seek(seconds)` | `avObject.seek(milliseconds)` |
-| Dispose | `player.destroy()` / `player.dispose()` | `avObject.stop()` |
-| ABR | JS-based (dash.js/hls.js logic) | Native chipset ABR |
-| FreeWheel Ads | Supported via plugin | Not supported (separate ad flow) |
+:::note
+In direct mode, metadata (overlays, analytics IDs, content ratings) will be empty since no content catalogue is queried. 
+You can optionally set `title`, `description`, and `poster` attributes for basic display info.
+:::
 
-## Advertising on A/V Control
+### Example: Local DASH on HbbTV
 
-The FreeWheel plugin architecture used by dash.js and hls.js cores relies on companion `<video>` elements for ad rendering. With A/V Control, advertising typically follows one of these patterns:
-
-1. **Server-side Ad Insertion (SSAI)** — Ads are stitched into the manifest server-side. No client-side ad SDK needed.
-2. **Companion banner ads** — Display HTML overlay ads alongside the A/V Control object, triggered by stream events.
-3. **Pre-roll via separate `<video>` element** — Play pre-roll in an HTML5 video element, then switch to A/V Control for main content.
-
-## Testing
-
-Test on real HbbTV hardware or an HbbTV emulator. Key things to verify:
-
-- `playState` transitions are correctly mapped
-- DRM license acquisition works with your DRM provider
-- Seek works (some devices only support seek in milliseconds with limited precision)
-- `timeupdate` synthetic events fire reliably
-- Dispose properly releases the broadcast resource
+```html
+<hyoga-player
+  id="hyogaManager-player-001"
+  uid="player-001"
+  playerselector="hyogaPlayer-001"
+  videolibrary="avcontrol"
+  sourcetype="direct"
+  src="https://storage.googleapis.com/shaka-demo-assets/tos-ttml/dash.mpd"
+  srctype="dash"
+  autoplay="true"
+>
+  <hyoga-videoplayer hyogamanager="hyogaManager-player-001" />
+</hyoga-player>
+```
 
 ## Summary
 
@@ -353,3 +324,4 @@ Adding A/V Control as a player core in Hyoga follows the same pattern as dash.js
 3. Register the core in `hbbtv-playercomponent.js`
 4. Add the DOM template in `playercomponent.js`
 5. Use `videolibrary="avcontrol"` in `<hyoga-player>` markup
+6. **Test locally** using `sourcetype="direct"` with `src` pointing to a file served on the local network

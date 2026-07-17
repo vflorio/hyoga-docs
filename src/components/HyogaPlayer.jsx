@@ -31,6 +31,9 @@ const PLAYER_ATTRIBUTE_ORDER = [
   "playerselector",
   "videolibrary",
   "sourcetype",
+  "src",
+  "srctype",
+  "title",
   "adsystem",
   "locale",
   "globaleventsmanager",
@@ -43,6 +46,7 @@ const PLAYER_ATTRIBUTE_ORDER = [
   "sourceparams",
   "autoplay",
   "muted",
+  "controls",
   "deferredadinit",
   "hideoverlay",
 ];
@@ -74,23 +78,6 @@ function SelectorBar({
 }) {
   return (
     <Box sx={{ display: "flex", gap: 2, flexWrap: "wrap", alignItems: "center" }}>
-      {environments.length > 1 && (
-        <FormControl size="small" sx={{ minWidth: 160, flexGrow: 1 }}>
-          <InputLabel>Environment</InputLabel>
-          <Select
-            value={selectedEnvironmentKey}
-            label="Environment"
-            onChange={(e) => onEnvironmentChange(e.target.value)}
-          >
-            {environments.map((env) => (
-              <MenuItem key={env.key} value={env.key}>
-                {env.label}
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
-      )}
-
       <FormControl size="small" sx={{ minWidth: 160, flexGrow: 1 }}>
         <InputLabel>Content mode</InputLabel>
         <Select value={contentMode} label="Content mode" onChange={(e) => onContentModeChange(e.target.value)}>
@@ -109,6 +96,23 @@ function SelectorBar({
             {variants.map((v) => (
               <MenuItem key={v.key} value={v.key}>
                 {v.label}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+      )}
+
+      {environments.length > 1 && (
+        <FormControl size="small" sx={{ minWidth: 160, flexGrow: 1 }}>
+          <InputLabel>Sonic Environment</InputLabel>
+          <Select
+            value={selectedEnvironmentKey}
+            label="Sonic Environment"
+            onChange={(e) => onEnvironmentChange(e.target.value)}
+          >
+            {environments.map((env) => (
+              <MenuItem key={env.key} value={env.key}>
+                {env.label}
               </MenuItem>
             ))}
           </Select>

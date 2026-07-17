@@ -23,11 +23,6 @@ function loadScript(src) {
     document.body.appendChild(script);
   });
 }
-
-function valueOrUndefined(value) {
-  return value === "" ? undefined : value;
-}
-
 function cloneValue(value) {
   if (value === undefined) return undefined;
   return JSON.parse(JSON.stringify(value));
@@ -92,6 +87,32 @@ export default function HyogaRuntimePlayer({ config, hyogaScript, runtimeContext
     };
   }, [hyogaScript, runtimeContext]);
 
+  const isValidAttrbute = ([_, value]) => value !== undefined && value !== null && value !== "";
+
+  const attributes = Object.fromEntries(
+    Object.entries({
+      id: config.id,
+      uid: config.uid,
+      playerselector: config.playerselector,
+      videolibrary: config.videolibrary,
+      sourcetype: config.sourcetype,
+      adsystem: config.adsystem,
+      locale: config.locale,
+      globaleventsmanager: config.globaleventsmanager,
+      hyogamanager: config.hyogamanager,
+      disableobserver: config.disableobserver,
+      endpoint: config.endpoint,
+      realm: config.realm,
+      assetid: config.assetid,
+      playbacktype: config.playbacktype,
+      sourceparams: config.sourceparams,
+      autoplay: config.autoplay,
+      muted: config.muted,
+      deferredadinit: config.deferredadinit,
+      hideoverlay: config.hideoverlay,
+    }).filter(isValidAttrbute),
+  );
+
   return (
     <>
       {error ? <p style={{ color: "#b42318" }}>{error}</p> : !ready ? <p>Loading scripts...</p> : null}
@@ -106,30 +127,9 @@ export default function HyogaRuntimePlayer({ config, hyogaScript, runtimeContext
           background: "#000",
         }}
       >
+        {}
         {ready && !error ? (
-          <hyoga-player
-            key={rerenderKey}
-            id={config.id}
-            uid={config.uid}
-            playerselector={config.playerselector}
-            videolibrary={config.videolibrary}
-            sourcetype={config.sourcetype}
-            adsystem={valueOrUndefined(config.adsystem)}
-            locale={config.locale}
-            globaleventsmanager={valueOrUndefined(config.globaleventsmanager)}
-            hyogamanager={valueOrUndefined(config.hyogamanager)}
-            disableobserver={valueOrUndefined(config.disableobserver)}
-            endpoint={config.endpoint}
-            realm={config.realm}
-            assetid={config.assetid}
-            playbacktype={config.playbacktype}
-            sourceparams={valueOrUndefined(config.sourceparams)}
-            autoplay={config.autoplay}
-            muted={config.muted}
-            deferredadinit={valueOrUndefined(config.deferredadinit)}
-            hideoverlay={valueOrUndefined(config.hideoverlay)}
-            style={{ display: "block", width: "100%", height: "100%" }}
-          >
+          <hyoga-player key={rerenderKey} {...attributes} style={{ display: "block", width: "100%", height: "100%" }}>
             <hyoga-videoplayer hyogamanager={config.hyogamanager || config.id} />
           </hyoga-player>
         ) : null}

@@ -11,6 +11,18 @@ const UID_DERIVED_FIELDS = {
   globaleventsmanager: (uid) => `${uid}@lomaEventsManager`,
 };
 
+// Fields only relevant for sourcetype="sonic"
+const SONIC_ONLY_FIELDS = ["endpoint", "realm", "assetid", "playbacktype", "sourceparams"];
+// Fields only relevant for sourcetype="direct"
+const DIRECT_ONLY_FIELDS = ["src", "srctype", "title"];
+
+function isFieldVisible(fieldKey, config) {
+  const sourcetype = config?.sourcetype;
+  if (sourcetype === "direct" && SONIC_ONLY_FIELDS.includes(fieldKey)) return false;
+  if (sourcetype === "sonic" && DIRECT_ONLY_FIELDS.includes(fieldKey)) return false;
+  return true;
+}
+
 function handleUidChange(newUid, onConfigChange) {
   onConfigChange((prev) => {
     const updates = { uid: newUid };
@@ -60,56 +72,58 @@ export default function ConfigForm({
             </Typography>
 
             <Box sx={{ display: "grid", gap: 1, gridTemplateColumns: "1fr 1fr" }}>
-              {CONFIG_FIELDS_BY_DOMAIN[domain].map((fieldKey) => {
-                const meta = FIELD_META[fieldKey];
-                const isDisabled = domain === "identity" && fieldKey in UID_DERIVED_FIELDS;
-                const value = config[fieldKey] ?? "";
-                const handleChange = (e) => {
-                  if (fieldKey === "uid") {
-                    handleUidChange(e.target.value, onConfigChange);
-                  } else {
-                    onConfigChange((prev) => ({
-                      ...prev,
-                      [fieldKey]: e.target.value,
-                    }));
-                  }
-                };
+              {CONFIG_FIELDS_BY_DOMAIN[domain]
+                .filter((fieldKey) => isFieldVisible(fieldKey, config))
+                .map((fieldKey) => {
+                  const meta = FIELD_META[fieldKey];
+                  const isDisabled = domain === "identity" && fieldKey in UID_DERIVED_FIELDS;
+                  const value = config[fieldKey] ?? "";
+                  const handleChange = (e) => {
+                    if (fieldKey === "uid") {
+                      handleUidChange(e.target.value, onConfigChange);
+                    } else {
+                      onConfigChange((prev) => ({
+                        ...prev,
+                        [fieldKey]: e.target.value,
+                      }));
+                    }
+                  };
 
-                if (meta?.type === "select" && meta.options) {
+                  if (meta?.type === "select" && meta.options) {
+                    return (
+                      <TextField
+                        key={fieldKey}
+                        label={fieldKey}
+                        size="small"
+                        select
+                        value={value}
+                        sx={{ mt: 0.5 }}
+                        disabled={isDisabled}
+                        helperText={meta.description}
+                        onChange={handleChange}
+                      >
+                        {meta.options.map((opt) => (
+                          <MenuItem key={opt} value={opt}>
+                            {opt || <em>none</em>}
+                          </MenuItem>
+                        ))}
+                      </TextField>
+                    );
+                  }
+
                   return (
                     <TextField
                       key={fieldKey}
                       label={fieldKey}
                       size="small"
-                      select
                       value={value}
                       sx={{ mt: 0.5 }}
                       disabled={isDisabled}
-                      helperText={meta.description}
+                      helperText={meta?.description}
                       onChange={handleChange}
-                    >
-                      {meta.options.map((opt) => (
-                        <MenuItem key={opt} value={opt}>
-                          {opt || <em>none</em>}
-                        </MenuItem>
-                      ))}
-                    </TextField>
+                    />
                   );
-                }
-
-                return (
-                  <TextField
-                    key={fieldKey}
-                    label={fieldKey}
-                    size="small"
-                    value={value}
-                    sx={{ mt: 0.5 }}
-                    disabled={isDisabled}
-                    helperText={meta?.description}
-                    onChange={handleChange}
-                  />
-                );
-              })}
+                })}
             </Box>
           </Box>
         ))}
